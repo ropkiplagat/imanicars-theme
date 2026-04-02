@@ -17,7 +17,10 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p 18765 -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          # Add passphrase to ssh-agent so rsync doesn't prompt
+          eval $(ssh-agent -s)
+          echo "${{ secrets.SSH_KEY_PASSWORD }}" | ssh-add ~/.ssh/deploy_key
+          ssh-keyscan -p 18765 ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Deploy theme to SiteGround via rsync
         run: |
