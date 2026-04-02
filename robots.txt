@@ -1,0 +1,74 @@
+# ============================================================
+# IMANI CARS — robots.txt
+# Allow all content pages. Block admin, bots, and thin URLs.
+# ============================================================
+
+User-agent: *
+Allow: /
+Allow: /used-cars/
+Allow: /dealers/
+Allow: /list-your-car/
+Allow: /pricing/
+Allow: /brisbane/
+Allow: /melbourne/
+Allow: /perth/
+Allow: /darwin/
+Allow: /finance/
+Allow: /sell-your-car/
+Allow: /blog/
+
+# Block WordPress admin and system paths
+Disallow: /wp-admin/
+Disallow: /wp-login.php
+Disallow: /wp-includes/
+Disallow: /wp-json/
+Disallow: /xmlrpc.php
+
+# Block search result variations (thin content)
+Disallow: /?s=
+Disallow: /search/
+
+# Block private/account pages (no SEO value)
+Disallow: /seller-dashboard/
+Disallow: /create-listing/
+Disallow: /account/
+Disallow: /cart/
+Disallow: /checkout/
+Disallow: /order-received/
+
+# Block utility/test paths
+Disallow: /cdn-cgi/
+Disallow: /*.php$
+Disallow: /feed/
+Disallow: /comments/feed/
+
+# Allow specific bots full crawl
+User-agent: Googlebot
+Allow: /
+Disallow: /wp-admin/
+
+User-agent: Googlebot-Image
+Allow: /
+Allow: /assets/images/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /wp-admin/
+
+# Block aggressive scrapers that don't respect crawl budgets
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# ============================================================
+# SITEMAP
+# ============================================================
+Sitemap: https://imanicars.com/sitemap.xml

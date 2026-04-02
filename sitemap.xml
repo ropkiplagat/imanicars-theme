@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- ======================================================
+       IMANI CARS SITEMAP — Priority order for Google crawling
+       Submit to: https://search.google.com/search-console/
+       ====================================================== -->
+
+  <!-- NATIONAL HOMEPAGE (priority 1.0) -->
+  <url>
+    <loc>https://imanicars.com/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://picsum.photos/seed/ic-hero-desktop/1920/600</image:loc>
+      <image:title>Cars for Sale Australia — Imani Cars</image:title>
+    </image:image>
+  </url>
+
+  <!-- DEALER ACQUISITION — highest priority B2B pages -->
+  <url>
+    <loc>https://imanicars.com/list-your-car/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/pricing/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/dealers/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- NATIONAL CATEGORY PAGES -->
+  <url>
+    <loc>https://imanicars.com/used-cars/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/sell-your-car/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/finance/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- CITY HUBS (priority 0.9 — local search target) -->
+  <url>
+    <loc>https://imanicars.com/brisbane/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://picsum.photos/seed/ic-city-brisbane/560/373</image:loc>
+      <image:title>Cars for Sale Brisbane QLD — Imani Cars</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://imanicars.com/melbourne/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://picsum.photos/seed/ic-city-melbourne/560/373</image:loc>
+      <image:title>Cars for Sale Melbourne VIC — Imani Cars</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://imanicars.com/perth/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://picsum.photos/seed/ic-city-perth/560/373</image:loc>
+      <image:title>Cars for Sale Perth WA — Imani Cars</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://imanicars.com/darwin/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://picsum.photos/seed/ic-city-darwin/560/373</image:loc>
+      <image:title>Cars for Sale Darwin NT — Imani Cars</image:title>
+    </image:image>
+  </url>
+
+  <!-- USED CARS BY CITY (priority 0.85 — high buyer intent) -->
+  <url>
+    <loc>https://imanicars.com/used-cars/brisbane/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/used-cars/melbourne/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/used-cars/perth/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/used-cars/darwin/</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- DEALERS BY CITY (priority 0.8 — local dealer search) -->
+  <url>
+    <loc>https://imanicars.com/dealers/brisbane/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/dealers/melbourne/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/dealers/perth/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/dealers/darwin/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- BODY TYPE CATEGORY PAGES (priority 0.75) -->
+  <url>
+    <loc>https://imanicars.com/used-cars/brisbane/?type=suv</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/used-cars/brisbane/?type=ute</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/used-cars/brisbane/?type=sedan</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/used-cars/brisbane/?type=hatchback</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/used-cars/brisbane/?type=4wd</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/used-cars/brisbane/?type=hybrid</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/used-cars/brisbane/?type=electric</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- SUPPORT PAGES (priority 0.6) -->
+  <url>
+    <loc>https://imanicars.com/about/</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/contact/</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/privacy-policy/</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/terms/</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <!-- BLOG PRIORITY ARTICLES (to be published — priority 0.7) -->
+  <url>
+    <loc>https://imanicars.com/blog/free-car-listing-platform-dealers-australia/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/blog/carsales-alternative-small-dealers/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/blog/used-cars-brisbane-under-20000/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/blog/best-family-cars-melbourne/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/blog/used-4wd-darwin-nt/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/blog/cheap-used-cars-perth-under-15000/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/blog/used-suv-brisbane-2025/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/blog/used-utes-brisbane-ford-ranger-hilux/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/blog/used-hybrid-cars-australia/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+  <url>
+    <loc>https://imanicars.com/blog/chinese-cars-for-sale-australia-byd-chery/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+
+</urlset>

@@ -1,0 +1,161 @@
+/*
+Theme Name: Imani Cars
+Theme URI: https://imanicars.com
+Author: Imani Car Sales
+Author URI: https://imanicars.com
+Description: Australian multi-city automotive marketplace — Brisbane, Melbourne, Perth, Darwin. Free listings for dealers, paid premium tiers.
+Version: 1.0.0
+Requires at least: 6.0
+Tested up to: 6.5
+Requires PHP: 7.4
+License: Proprietary
+Text Domain: imanicars
+Tags: automotive, marketplace, custom-colors, custom-logo, responsive-layout
+*/
+
+/* ============================================================
+   ROOT — BRAND + SEMANTIC TOKENS
+   ============================================================ */
+:root {
+  /* IMANI CARS BRAND */
+  --brand-red:        #fa3232;
+  --brand-red-dk:     #c83232;
+  --brand-red-dkr:    #963232;
+  --brand-gold:       #fae164;
+  --brand-gold-warm:  #faaf64;
+  --brand-dark:       #1a1a1a;
+  --brand-charcoal:   #323232;
+
+  /* NEUTRALS */
+  --white:      #ffffff;
+  --off-white:  #f9f9f9;
+  --grey-1:     #f4f4f4;
+  --grey-2:     #e8e8e8;
+  --grey-3:     #c8c8c8;
+  --grey-4:     #8a8a8a;
+  --grey-5:     #555555;
+  --text:       #1a1a1a;
+
+  /* SEMANTIC */
+  --color-primary:    var(--brand-red);
+  --color-primary-dk: var(--brand-red-dk);
+  --color-header-bg:  var(--brand-dark);
+  --color-footer-bg:  var(--brand-red-dkr);
+  --color-accent:     var(--brand-gold);
+  --color-link:       var(--brand-gold-warm);
+  --color-new-badge:  #007a3d;
+  --color-info-link:  #0077c8;
+
+  /* PRICING TIER */
+  --tier-free:    #6c757d;
+  --tier-growth:  #0077c8;
+  --tier-pro:     var(--brand-red);
+  --tier-premium: var(--brand-gold);
+
+  /* PRICE BADGES */
+  --badge-great-bg: #d4edda;
+  --badge-great-fg: #155724;
+  --badge-good-bg:  #d1ecf1;
+  --badge-good-fg:  #0c5460;
+  --badge-fair-bg:  #fff3cd;
+  --badge-fair-fg:  #856404;
+
+  /* LAYOUT */
+  --container-max: 1280px;
+  --gutter:        1.5rem;
+  --radius:        6px;
+  --radius-sm:     4px;
+  --radius-lg:     12px;
+  --shadow-sm:     0 1px 3px rgba(0,0,0,.08);
+  --shadow-md:     0 4px 12px rgba(0,0,0,.12);
+  --shadow-lg:     0 8px 24px rgba(0,0,0,.16);
+  --transition:    all .2s ease;
+
+  /* HEADER */
+  --h-utility: 32px;
+  --h-main:    60px;
+  --h-nav:     44px;
+}
+
+/* ============================================================
+   RESET
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: 'Source Sans 3', Arial, sans-serif;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--white);
+  line-height: 1.6;
+}
+img, video { max-width: 100%; height: auto; display: block; }
+a { color: var(--color-primary); text-decoration: none; transition: var(--transition); }
+a:hover { color: var(--color-primary-dk); }
+ul, ol { list-style: none; }
+button { cursor: pointer; font-family: inherit; }
+input, select, textarea { font-family: inherit; }
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; line-height: 1.2; }
+h2 { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; line-height: 1.25; }
+h3 { font-size: clamp(1.1rem, 2.5vw, 1.4rem); font-weight: 700; line-height: 1.3; }
+h4 { font-size: 1.15rem; font-weight: 600; }
+h5 { font-size: 1rem; font-weight: 600; }
+h6 { font-size: .9rem; font-weight: 600; }
+p  { margin-bottom: 1rem; }
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.container { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--gutter); }
+.section    { padding: 3rem 0; }
+.section-lg { padding: 5rem 0; }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .625rem 1.25rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: .95rem;
+  border: 2px solid transparent;
+  transition: var(--transition);
+  white-space: nowrap;
+  line-height: 1.4;
+  text-align: center;
+}
+.btn-primary  { background: var(--brand-red); color: var(--white); border-color: var(--brand-red); }
+.btn-primary:hover { background: var(--brand-red-dk); border-color: var(--brand-red-dk); color: var(--white); }
+.btn-outline  { background: transparent; color: var(--brand-red); border-color: var(--brand-red); }
+.btn-outline:hover { background: var(--brand-red); color: var(--white); }
+.btn-gold     { background: var(--brand-gold); color: var(--brand-dark); border-color: var(--brand-gold); }
+.btn-gold:hover { background: var(--brand-gold-warm); color: var(--brand-dark); border-color: var(--brand-gold-warm); }
+.btn-dark     { background: var(--brand-dark); color: var(--white); border-color: var(--brand-dark); }
+.btn-dark:hover { background: var(--brand-charcoal); color: var(--white); border-color: var(--brand-charcoal); }
+.btn-lg { padding: .875rem 2rem; font-size: 1.05rem; }
+.btn-sm { padding: .375rem .875rem; font-size: .825rem; }
+.btn-full { width: 100%; justify-content: center; }
+
+/* SKIP LINK */
+.skip-link { position: absolute; top: -100%; left: 0; background: var(--brand-red); color: var(--white); padding: .5rem 1rem; z-index: 9999; font-size: .875rem; }
+.skip-link:focus { top: 0; }
+
+/* UTILITY */
+.text-center  { text-align: center; }
+.text-white   { color: var(--white); }
+.text-red     { color: var(--brand-red); }
+.text-gold    { color: var(--brand-gold); }
+.text-muted   { color: var(--grey-5); }
+.text-sm      { font-size: .875rem; }
+.text-xs      { font-size: .75rem; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+@media (max-width: 480px)  { :root { --gutter: 1rem; } }
+@media (max-width: 768px)  { .section { padding: 2rem 0; } .section-lg { padding: 3rem 0; } }
