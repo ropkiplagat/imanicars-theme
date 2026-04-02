@@ -1,0 +1,40 @@
+name: Deploy to SiteGround
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout theme
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p 18765 -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy theme to SiteGround via rsync
+        run: |
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p 18765 -o StrictHostKeyChecking=no" \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.gitignore' \
+            --exclude='*.zip' \
+            --exclude='seo-instructions.md' \
+            --exclude='carsales-design-reference.md' \
+            ./ \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:www/imanicars.com/public_html/wp-content/themes/imanicars-theme/
+
+      - name: Verify deployment
+        run: |
+          ssh -i ~/.ssh/deploy_key -p 18765 \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "ls www/imanicars.com/public_html/wp-content/themes/imanicars-theme/ | head -10 && echo 'Deploy OK'"
