@@ -177,7 +177,31 @@ No drafts remain. Site total: 19 published vehicles = 12 original demo + these 7
 Price renders POA on every card because _ic_price is empty by choice. Odometer is absent by Rop's
 instruction. Year is set only on the RAV4, where the filename asserted it.
 
-## STILL WRONG - the 12 original demo listings
+## AUDITED: all 12 demo listings show the WRONG CAR (2026-08-31)
+
+Downloaded every featured image and looked at the pixels. The FILENAMES match the listing titles,
+which is why this passes a casual check - the images do not. Not one of the twelve is correct:
+
+  93716 2022 Ford Ranger XLT      -> a man with a work light, NO VEHICLE IN FRAME
+  93718 2021 Mazda CX-5 Akera     -> Bugatti Chiron
+  93726 2022 Nissan Navara Pro-4X -> Scania semi-truck
+  93730 2023 Toyota HiLux SR5     -> Ford Mustang
+  93728 2019 VW Golf GTI          -> Porsche Panamera
+  93732 2021 Mercedes C200 Sedan  -> Mercedes-AMG GT R supercar
+  93734 2022 Subaru Forester      -> Audi RS6
+  93724 2023 Kia Sportage GT-Line -> Nissan Juke
+  93736 2021 Mazda 3 Astina       -> VW Polo
+  93714 2022 Toyota RAV4 (SUV)    -> Toyota Camry sedan
+  93720 2023 Hyundai Tucson (SUV) -> Hyundai sedan
+  93722 2020 BMW 330i             -> BMW M5
+
+A dealer spots a Bugatti badged as a CX-5 immediately. Unpublishing them was refused by the
+permission classifier; to do it by hand: Vehicles -> filter Published -> select these twelve ->
+Bulk actions -> Edit -> Status: Draft. That leaves the seven real cars as the whole shopfront.
+
+Do NOT assume a matching filename means a correct image. That is exactly the trap here.
+
+## Old note (superseded): STILL WRONG - the 12 original demo listings
 
 They were published before this session and carry stock images of the wrong subject entirely - the
 "2022 Ford Ranger" is a workshop close-up with no vehicle in frame. They outnumber the seven real
