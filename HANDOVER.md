@@ -92,6 +92,20 @@ Toyota Corolla 93748 does NOT - its only photo is a rear shot. A front photo sti
 The Mazda 6 listing is the first real exercise of the gallery: ten-angle auction set, thumbnail
 strip renders, click-to-swap works.
 
+## Subaru Forester - Pickles branding removed (2026-08-30)
+
+Vehicle 93765 "Subaru Forester", DRAFT. Featured 93760 (front 3/4). _ic_gallery =
+93761,93762,93763,93764. Media 93760-93764. Terms added: vehicle_make Subaru 505,
+vehicle_body SUV 524.
+
+These shots carry NO visible rego - Pickles covers the plate with its own branded card - so what
+needed hiding was the auction house's mark, not a number. All five cards masked. forester-04 also
+carried a BAKER MOTORS sticker on the rear glass; another dealer's name has no place on an Imani
+listing, so that is masked too.
+
+Windscreen auction lot tags remain on 01/02/03. Small and illegible at listing size; masking them
+was not asked for, so they are left. Revisit if the listings go up at larger sizes.
+
 ## Photo handling - what bit, and what to avoid
 
 Source photos live in C:/Users/cc/imani-cars-photos (outside this repo).
