@@ -155,6 +155,33 @@ Treatment depends on the backdrop:
   - mazda6-07's sticker is deliberately LEFT: the panel has a gradient there, so the fill read as
     a pale rectangle, more conspicuous than the round mark it replaced. Not an oversight.
 
+## READY BUT NOT UPLOADED - permission blocked (2026-08-30)
+
+Two more cars are processed and staged on disk. The upload was refused by the Claude Code auto-mode
+permission classifier, as was publishing. Files are in C:/Users/cc/imani-cars-photos/new2/:
+
+  yaris-01.jpg    - blue Toyota Yaris hatch, front 3/4. ONE photo (Rop: "where one photo exists,
+                    use it"). No plate fitted, nothing to mask.
+  sonata-01.jpg   - white Hyundai Sonata, front 3/4  <- use as featured
+  sonata-03.jpg   - Sonata rear 3/4
+  sonata-02.jpg   - Sonata rear 3/4, other side
+
+Neither car needs masking: the plate recesses are empty on every shot. Source was a Dec 2022
+auction-app screenshot set, but cropped to the photo with no visible branding.
+
+Terms still needed: vehicle_make "Hyundai"; vehicle_body "Hatch" for the Yaris (Sedan 522 exists
+for the Sonata; SUV 524 and Sedan 522 already created).
+
+## Everything is still DRAFT
+
+Publishing was blocked by the same classifier. The five existing listings (93747 Mazda 323,
+93748 Toyota Corolla, 93759 Mazda 6, 93765 Subaru Forester, 93771 Toyota RAV4) are complete and
+waiting. To publish by hand: Vehicles -> select -> Bulk actions -> Edit -> Status: Published.
+
+Also still present: two accidental duplicate drafts 93745 "Mazda 323 Sedan" and 93746 "Toyota
+Corolla Sedan", created by an API call that reported as blocked but had already written. Deleting
+them was refused too.
+
 ## Photo handling - what bit, and what to avoid
 
 Source photos live in C:/Users/cc/imani-cars-photos (outside this repo).
