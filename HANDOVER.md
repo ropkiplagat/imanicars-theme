@@ -155,7 +155,36 @@ Treatment depends on the backdrop:
   - mazda6-07's sticker is deliberately LEFT: the panel has a gradient there, so the fill read as
     a pale rectangle, more conspicuous than the round mark it replaced. Not an oversight.
 
-## READY BUT NOT UPLOADED - permission blocked (2026-08-30)
+## PUBLISHED 2026-08-31 - seven cars live
+
+All seven are status=publish and verified on the public site (HTTP 200 each, zero Unsplash refs,
+thumbnail counts match gallery sizes, no stock-photo notice anywhere):
+
+  93747 Mazda 323        1 photo   front 3/4
+  93748 Toyota Corolla   1 photo   REAR - still the only outstanding hero problem
+  93759 Mazda 6         10 photos  front 3/4, all auction marks removed
+  93765 Subaru Forester  5 photos  front 3/4, Pickles + rival dealer sticker removed
+  93771 Toyota RAV4      2 photos  front 3/4, spyne.ai studio, year 2018
+  93780 Hyundai Sonata   3 photos  front 3/4, no masking needed
+  93781 Toyota Yaris     1 photo   front 3/4, no masking needed
+
+Terms created across the session: makes Mazda 497, Toyota 495, Subaru 505, Hyundai 499;
+bodies Sedan 522, SUV 524, Hatch 525; city Melbourne 518; condition Used 523.
+
+The two accidental duplicate drafts 93745/93746 are trashed (recoverable from wp-admin Trash).
+No drafts remain. Site total: 19 published vehicles = 12 original demo + these 7.
+
+Price renders POA on every card because _ic_price is empty by choice. Odometer is absent by Rop's
+instruction. Year is set only on the RAV4, where the filename asserted it.
+
+## STILL WRONG - the 12 original demo listings
+
+They were published before this session and carry stock images of the wrong subject entirely - the
+"2022 Ford Ranger" is a workshop close-up with no vehicle in frame. They outnumber the seven real
+cars on the archive page. Either replace their featured images or unpublish them; they undercut a
+dealership demo far more than any auction sticker did.
+
+## Old note (superseded): READY BUT NOT UPLOADED
 
 Two more cars are processed and staged on disk. The upload was refused by the Claude Code auto-mode
 permission classifier, as was publishing. Files are in C:/Users/cc/imani-cars-photos/new2/:
