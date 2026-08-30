@@ -53,6 +53,25 @@ Thumbnail strip hidden when there is one photo.
   contractor's password resets and locks them out. Create a new admin instead —
   and Rop creates it, not an agent acting from inside someone else's session.
 
+## Account state (2026-08-30)
+
+- `ropkiplagat` / ropkiplagat@gmail.com / Administrator CREATED and verified in `users.php` (3 users, all admin).
+- **The WP notification email never arrived.** Gmail searched `in:anywhere newer_than:2d` for
+  "Login Details" / wordpress / imanicars -- nothing. WP mail on this host is not delivering to
+  Gmail, even though info@ and rentals@imanicars.com receive normal business mail.
+- The generated password was shown on the Add User form and is no longer retrievable (page
+  navigated away); it was never recorded. Rop must set one via Users -> ropkiplagat -> Edit.
+- **Do NOT delete `consultant` or `Syed` until Rop has logged in as `ropkiplagat` and confirmed it.**
+  They are the only other admins; WP also refuses to let an account delete itself, so `consultant`
+  cannot be removed from within its own session. `consultant` owns 15 posts needing reassignment.
+
+## Deploy pipeline is flaky
+
+Run 33296938050 (7cae815) FAILED: `ssh: connect to host *** port 18765: Connection timed out`,
+rsync exit 255. Transient SiteGround SSH reachability, not a code fault. 2 of 4 historical runs
+failed the same way. f31161b did land and is verified on the server; 7cae815 (docs only) did not.
+Always confirm a deploy against the server, never against the push.
+
 ## Blocked
 
 - Google Photos: the Chrome-extension session has no Photos access (Gmail,
