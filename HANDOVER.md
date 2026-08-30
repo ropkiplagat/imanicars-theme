@@ -106,6 +106,28 @@ listing, so that is masked too.
 Windscreen auction lot tags remain on 01/02/03. Small and illegible at listing size; masking them
 was not asked for, so they are left. Revisit if the listings go up at larger sizes.
 
+## Toyota RAV4 - the right kind of source (2026-08-30)
+
+Vehicle 93771 "Toyota RAV4", DRAFT. Featured 93769, _ic_gallery = 93770. Media 93769-93770.
+_ic_year = 2018 - the ONLY listing with a year, because the filename asserts it rather than it
+being guessed off body shape.
+
+These came from Drive, not Google Photos: spyne.ai processed dealership photos
+(IMANI-CAR-SALES-TOYOTA-RAV4-2018G/H-798x466.jpg, 1920x1080, shared from priyanka.sambyal@spyne.ai,
+folder 1VPNcg3prGJQ81ybv4pAvOLxl0-qF2q8K). Background replaced, Imani Car Sales logo already on the
+studio wall, no plates, no auction branding. NOTHING needed masking. This is the format every
+listing should use - see Rop: "use photos after registration", not auction-lot shots.
+
+Only TWO such photos exist in Drive. A third file in that folder is a Mazda wheel close-up, not
+the RAV4.
+
+## Drive folder "Imani Cars - Listing Photos" is EMPTY
+
+Folder 1OxDTPWyNhdHdIAhaRaRdDGtKApsqTIXQ, created 2026-08-30 05:53 by the browser session. Zero
+files in it. Rop believed the photos were there. The folder exists; the work behind it does not -
+the same success-artefact shape as ADR-014 and the Nicole call bug. Verify a folder has FILES, not
+just that it was created.
+
 ## Photo handling - what bit, and what to avoid
 
 Source photos live in C:/Users/cc/imani-cars-photos (outside this repo).
