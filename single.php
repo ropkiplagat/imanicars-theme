@@ -33,7 +33,6 @@ while ( have_posts() ) :
     $finance_mo  = get_post_meta( $post_id, '_ic_finance_mo', true );
     $badge_type  = get_post_meta( $post_id, '_ic_badge_type', true );
 
-    $main_img = ic_get_car_image( $post_id, 'ic-single' );
     $title_str = trim( $year . ' ' . $make . ' ' . $model . ' ' . $badge_v );
     if ( empty( $title_str ) ) $title_str = get_the_title();
 ?>
@@ -56,6 +55,16 @@ while ( have_posts() ) :
       <div class="ic-single-main">
 
         <!-- GALLERY -->
+        <?php
+        $gallery        = ic_get_car_gallery( $post_id );
+        $is_placeholder = empty( $gallery );
+        if ( $is_placeholder ) {
+            $gallery = ic_get_placeholder_gallery();
+        }
+        $main_alt = $is_placeholder
+            ? __( 'Stock photo — not the actual vehicle', 'imanicars' )
+            : ( $gallery[0]['alt'] ? $gallery[0]['alt'] : $title_str );
+        ?>
         <div class="ic-single-gallery">
           <div class="ic-single-gallery__main">
             <?php if ( $badge_type ) : ?>
@@ -63,22 +72,30 @@ while ( have_posts() ) :
               <?php echo esc_html( strtoupper( $badge_type ) ); ?>
             </span>
             <?php endif; ?>
-            <img src="<?php echo esc_url( $main_img ); ?>"
-                 alt="<?php echo esc_attr( $title_str ); ?>"
+            <img src="<?php echo esc_url( $gallery[0]['full'] ); ?>"
+                 alt="<?php echo esc_attr( $main_alt ); ?>"
                  width="800" height="534" loading="eager" class="ic-single-gallery__img" id="ic-gallery-main">
           </div>
+
+          <?php if ( count( $gallery ) > 1 ) : ?>
           <div class="ic-single-gallery__thumbs">
-            <?php
-            $seeds = [ '1552519152-9214d16d56ab', '1503376780353-7e6692767b70', '1590362891991-f776e747a588', '1555215695-3004980ad54e' ];
-            foreach ( $seeds as $i => $seed ) :
-            ?>
-            <button class="ic-single-gallery__thumb-btn" aria-label="<?php echo esc_attr( 'Photo ' . ( $i + 1 ) ); ?>" data-img="<?php echo esc_url( ic_unsplash( $seed, 800, 534 ) ); ?>">
-              <img src="<?php echo esc_url( ic_unsplash( $seed, 200, 133 ) ); ?>"
-                   alt="<?php echo esc_attr( $title_str . ' photo ' . ( $i + 1 ) ); ?>"
+            <?php foreach ( $gallery as $i => $photo ) : ?>
+            <button type="button" class="ic-single-gallery__thumb-btn"
+                    aria-label="<?php echo esc_attr( sprintf( __( 'Show photo %d', 'imanicars' ), $i + 1 ) ); ?>"
+                    data-img="<?php echo esc_url( $photo['full'] ); ?>">
+              <img src="<?php echo esc_url( $photo['thumb'] ); ?>"
+                   alt="<?php echo esc_attr( $photo['alt'] ? $photo['alt'] : sprintf( __( '%1$s photo %2$d', 'imanicars' ), $title_str, $i + 1 ) ); ?>"
                    width="200" height="133" loading="lazy" class="ic-single-gallery__thumb-img">
             </button>
             <?php endforeach; ?>
           </div>
+          <?php endif; ?>
+
+          <?php if ( $is_placeholder ) : ?>
+          <p class="ic-single-gallery__notice">
+            <?php esc_html_e( 'Photos of this vehicle have not been uploaded yet. The images above are stock library photos and do not show the actual car.', 'imanicars' ); ?>
+          </p>
+          <?php endif; ?>
         </div>
 
         <!-- VEHICLE SPECS -->

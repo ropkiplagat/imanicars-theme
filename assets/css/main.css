@@ -2007,3 +2007,16 @@
   .ic-topbar, .ic-header, .ic-category-nav, .ic-footer { display: none; }
   .ic-main { padding-top: 0; }
 }
+
+/* Gallery — stock-photo disclosure.
+   Shown only while a vehicle has no uploaded photos, so a buyer is never
+   left to assume a library image is the actual car. */
+.ic-single-gallery__notice {
+  margin: .75rem 0 0;
+  padding: .625rem .75rem;
+  font-size: .8125rem;
+  line-height: 1.5;
+  color: var(--badge-fair-fg);
+  background: var(--badge-fair-bg);
+  border-radius: var(--radius-sm);
+}

@@ -643,3 +643,171 @@ remove_action( 'admin_print_styles',  'print_emoji_styles' );
    NOTE: ic_render_demo_import_page() is defined ONLY in demo-import.php
    ========================================================= */
 require_once IC_THEME_DIR . '/dummy-data/demo-import.php';
+
+/* =========================================================
+   VEHICLE PHOTO GALLERY
+   Real uploads, stored as an ordered list of attachment IDs in
+   _ic_gallery. Featured image always leads. Falls back to the
+   Unsplash placeholders only when a vehicle has no photos at all.
+   ========================================================= */
+
+/**
+ * Ordered gallery for a vehicle.
+ *
+ * @return array<int, array{full:string, thumb:string, alt:string}> Empty when
+ *         the vehicle has no real photos — callers decide the fallback.
+ */
+function ic_get_car_gallery( $post_id ) {
+    $ids = array_filter( array_map(
+        'absint',
+        explode( ',', (string) get_post_meta( $post_id, '_ic_gallery', true ) )
+    ) );
+
+    // The featured image is the main listing photo, so it leads.
+    if ( has_post_thumbnail( $post_id ) ) {
+        array_unshift( $ids, (int) get_post_thumbnail_id( $post_id ) );
+    }
+
+    $out = [];
+    foreach ( array_unique( $ids ) as $id ) {
+        $full = wp_get_attachment_image_url( $id, 'ic-single' );
+        if ( ! $full ) {
+            continue; // Attachment deleted from the Media Library.
+        }
+        $thumb = wp_get_attachment_image_url( $id, 'ic-thumb' );
+        $out[] = [
+            'full'  => $full,
+            'thumb' => $thumb ? $thumb : $full,
+            'alt'   => (string) get_post_meta( $id, '_wp_attachment_image_alt', true ),
+        ];
+    }
+
+    return $out;
+}
+
+/**
+ * Placeholder gallery — the pre-existing stock shots, kept as the
+ * no-photos fallback so a new listing never renders an empty frame.
+ */
+function ic_get_placeholder_gallery() {
+    $seeds = [
+        '1552519152-9214d16d56ab',
+        '1503376780353-7e6692767b70',
+        '1590362891991-f776e747a588',
+        '1555215695-3004980ad54e',
+    ];
+
+    $out = [];
+    foreach ( $seeds as $seed ) {
+        $out[] = [
+            'full'  => ic_unsplash( $seed, 800, 534 ),
+            'thumb' => ic_unsplash( $seed, 200, 133 ),
+            'alt'   => '',
+        ];
+    }
+
+    return $out;
+}
+
+function ic_add_gallery_meta_box() {
+    add_meta_box(
+        'ic_gallery',
+        __( 'Vehicle Photos', 'imanicars' ),
+        'ic_render_gallery_meta_box',
+        'vehicle',
+        'normal',
+        'high'
+    );
+}
+add_action( 'add_meta_boxes', 'ic_add_gallery_meta_box' );
+
+function ic_render_gallery_meta_box( $post ) {
+    wp_nonce_field( 'ic_save_gallery', 'ic_gallery_nonce' );
+    $value = (string) get_post_meta( $post->ID, '_ic_gallery', true );
+    $ids   = array_filter( array_map( 'absint', explode( ',', $value ) ) );
+    ?>
+    <div class="ic-gallery-field" id="ic-gallery-field">
+        <p class="description">
+            <?php esc_html_e( 'Photos shown in the gallery strip on the car page. The Featured Image is the main photo and always appears first — do not add it again here. Drag to reorder.', 'imanicars' ); ?>
+        </p>
+
+        <ul class="ic-gallery-list" id="ic-gallery-list">
+            <?php foreach ( $ids as $id ) :
+                $thumb = wp_get_attachment_image_url( $id, 'ic-thumb' );
+                if ( ! $thumb ) {
+                    continue;
+                }
+                ?>
+                <li class="ic-gallery-item" data-id="<?php echo esc_attr( $id ); ?>">
+                    <img src="<?php echo esc_url( $thumb ); ?>" alt="" width="100" height="67">
+                    <button type="button" class="button-link ic-gallery-remove"
+                            aria-label="<?php esc_attr_e( 'Remove this photo', 'imanicars' ); ?>">&times;</button>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+
+        <p class="ic-gallery-empty" id="ic-gallery-empty"<?php echo $ids ? ' hidden' : ''; ?>>
+            <?php esc_html_e( 'No photos yet — this car will show stock placeholder images until you add some.', 'imanicars' ); ?>
+        </p>
+
+        <button type="button" class="button" id="ic-gallery-add">
+            <?php esc_html_e( 'Add photos from Media Library', 'imanicars' ); ?>
+        </button>
+
+        <input type="hidden" name="ic_gallery" id="ic-gallery-input" value="<?php echo esc_attr( implode( ',', $ids ) ); ?>">
+    </div>
+    <?php
+}
+
+function ic_save_gallery_meta( $post_id ) {
+    if ( ! isset( $_POST['ic_gallery_nonce'] )
+        || ! wp_verify_nonce( sanitize_key( $_POST['ic_gallery_nonce'] ), 'ic_save_gallery' ) ) {
+        return;
+    }
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+        return;
+    }
+    if ( ! current_user_can( 'edit_post', $post_id ) ) {
+        return;
+    }
+
+    $raw = isset( $_POST['ic_gallery'] ) ? sanitize_text_field( wp_unslash( $_POST['ic_gallery'] ) ) : '';
+    $ids = array_filter( array_map( 'absint', explode( ',', $raw ) ) );
+
+    // Only keep IDs that are real image attachments.
+    $ids = array_filter( $ids, function ( $id ) {
+        return wp_attachment_is_image( $id );
+    } );
+
+    if ( $ids ) {
+        update_post_meta( $post_id, '_ic_gallery', implode( ',', array_unique( $ids ) ) );
+    } else {
+        delete_post_meta( $post_id, '_ic_gallery' );
+    }
+}
+add_action( 'save_post_vehicle', 'ic_save_gallery_meta' );
+
+function ic_gallery_admin_assets( $hook ) {
+    if ( ! in_array( $hook, [ 'post.php', 'post-new.php' ], true ) ) {
+        return;
+    }
+    if ( get_current_screen() && 'vehicle' !== get_current_screen()->post_type ) {
+        return;
+    }
+
+    wp_enqueue_media();
+    wp_enqueue_script(
+        'ic-admin-gallery',
+        IC_THEME_URI . '/assets/js/admin-gallery.js',
+        [ 'jquery', 'jquery-ui-sortable' ],
+        IC_THEME_VERSION,
+        true
+    );
+    wp_enqueue_style(
+        'ic-admin-gallery',
+        IC_THEME_URI . '/assets/css/admin-gallery.css',
+        [],
+        IC_THEME_VERSION
+    );
+}
+add_action( 'admin_enqueue_scripts', 'ic_gallery_admin_assets' );
