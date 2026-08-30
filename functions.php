@@ -811,3 +811,34 @@ function ic_gallery_admin_assets( $hook ) {
     );
 }
 add_action( 'admin_enqueue_scripts', 'ic_gallery_admin_assets' );
+
+/* =========================================================
+   VEHICLE FIELDS OVER REST
+   The _ic_* keys are underscore-prefixed, so WordPress treats them as
+   protected and the REST API refuses to read or write them. Registering
+   them makes bulk stock entry possible at all — the public listing form
+   saves nothing, so the admin screen was the only way in.
+   ========================================================= */
+function ic_register_vehicle_meta() {
+    $fields = [
+        '_ic_price', '_ic_price_label', '_ic_year', '_ic_make', '_ic_model',
+        '_ic_badge', '_ic_odometer', '_ic_transmission', '_ic_fuel_type',
+        '_ic_body_type', '_ic_engine', '_ic_colour', '_ic_doors', '_ic_seats',
+        '_ic_condition', '_ic_seller_type', '_ic_dealer_name', '_ic_city',
+        '_ic_suburb', '_ic_state', '_ic_phone', '_ic_email', '_ic_finance_mo',
+        '_ic_badge_type', '_ic_gallery',
+    ];
+
+    foreach ( $fields as $key ) {
+        register_post_meta( 'vehicle', $key, [
+            'type'              => 'string',
+            'single'            => true,
+            'show_in_rest'      => true,
+            'sanitize_callback' => 'sanitize_text_field',
+            'auth_callback'     => function ( $allowed, $meta_key, $post_id ) {
+                return current_user_can( 'edit_post', $post_id );
+            },
+        ] );
+    }
+}
+add_action( 'init', 'ic_register_vehicle_meta' );
