@@ -74,34 +74,64 @@ Always confirm a deploy against the server, never against the push.
 
 ## Listings created 2026-08-30
 
-Media (first real uploads on the site): 93741 corolla-e120-01-web, 93742 mazda-323-01-web.
-Vehicles: 93747 "Mazda 323 Sedan", 93748 "Toyota Corolla Sedan" - both DRAFT.
-Taxonomies assigned on both: vehicle_make (Mazda 497 / Toyota 495), vehicle_body (Sedan 522),
+Media (first real uploads on the site): 93741 corolla-e120-01-web, 93742 mazda-323-01-web,
+93749-93758 mazda6-01..10.
+
+Vehicles, all DRAFT:
+- 93747 "Mazda 323"   - featured 93742 (front 3/4)
+- 93748 "Toyota Corolla" - featured 93741 (REAR shot - see rule below)
+- 93759 "Mazda 6"     - featured 93749 (front 3/4), _ic_gallery = 93750,93751,93752,93753,
+                        93754,93755,93756,93757,93758
+
+Taxonomies on all three: vehicle_make (Mazda 497 / Toyota 495), vehicle_body (Sedan 522),
 vehicle_city (Melbourne 518), vehicle_condition (Used 523).
 
-Photos came from Rop's Google Photos, masked in C:SERSIMANI-CARS-PHOTOS.
-THREE PLATES HIDDEN: EACH CAR'S OWN, PLUS 1GT 1NV - A THIRD CAR VISIBLE THROUGH THE MAZDA'S
-WINDSCREEN. EXIF STRIPPED; THE COROLLA CARRIED GPS 37DEG57'10.7"S 145DEG09'17.1"E (SE MELBOURNE),
-WHICH WOULD HAVE PUBLISHED A HOME ADDRESS. VERIFY MASKS BY RE-CROPPING AFTER MASKING, NOT BY
-TRUSTING THE SCRIPT.
+**Main photo must show the car FACING FORWARD** (Rop, 2026-08-30). Mazda 323 and Mazda 6 comply.
+Toyota Corolla 93748 does NOT - its only photo is a rear shot. A front photo still needs sourcing.
 
-LEFT DRAFT DELIBERATELY: NO YEAR, NO ODOMETER, NO PRICE. ROP SAID TO LEAVE KMS OUT; YEAR IS ONLY
-A BODY-SHAPE RANGE (MAZDA 323 BJ ~1998-2003, COROLLA E120 ~2001-2006) AND A WRONG YEAR ON A REAL
-LISTING IS A MISREPRESENTATION, SO IT IS UNSET RATHER THAN GUESSED. EMPTY PRICE RENDERS POA. THE
-COROLLA HAS NO TRIM BADGE FITTED - DO NOT WRITE "ASCENT". TO PUBLISH: FILL YEAR + PRICE, HIT
-PUBLISH. OWNERSHIP OF BOTH CARS IS STILL UNCONFIRMED BY ROP.
+The Mazda 6 listing is the first real exercise of the gallery: ten-angle auction set, thumbnail
+strip renders, click-to-swap works.
 
-## CARSALES CARD ANATOMY (THE STATED DESIGN REFERENCE)
+## Photo handling - what bit, and what to avoid
 
-  [21 PHOTO COUNT] / "2015 TOYOTA COROLLA" / "ASCENT AUTO F" / ,990 /
-  "DRIVE AWAY ... EXCL. GOVT. CHARGES" / FAIR PRICE /
-  SEDAN . AUTOMATIC . 4CYL 1.8L PETROL . 93,083 KM / "DEALER USED . QLD"
+Source photos live in C:/Users/cc/imani-cars-photos (outside this repo).
 
-GAPS IN CAR-CARD.PHP: NO PHOTO-COUNT BADGE; ENGINE RENDERS AS SEPARATE PILLS INSTEAD OF
-"4CYL 1.8L PETROL"; NO PRICE QUALIFIER; SELLER LINE IS "SUBURB, STATE" NOT "DEALER USED . VIC";
-VARIANT FOLDED INTO THE TITLE.
+Plates masked so far: each car's own, plus 1GT 1NV - a THIRD car visible through the Mazda 323's
+windscreen - plus VIC 2AE 5XK across 6 of the 10 Mazda 6 shots.
 
-## BLOCKED
+Two gotchas, both caught only by looking:
+1. A mask sized to the visible plate text CLIPPED the tilted plates in mazda6-01 and -10, leaving
+   a readable corner. Always re-crop the masked region and inspect it before uploading.
+2. EXIF carries GPS. The Corolla photo held 37d57'10.7"S 145d09'17.1"E (SE Melbourne) - publishing
+   it unstripped would have put a home address on a public listing. Strip metadata on every file.
 
-- Google Photos: the Chrome-extension session has no Photos access (Gmail,
-  Calendar, Drive only). Route photos via Drive, a local folder, or direct attach.
+The Google Photos "car" search interleaves vehicle photography with Pickles auction and payment
+screenshots carrying Rop's financial data (a -$13,943.80 transfer, a partial card number). Do NOT
+range-select a date block and upload it; select deliberately.
+
+Still unpulled, all AU: white Subaru Forester (2 Sept 2024, Pickles, multi-angle incl. front),
+silver Toyota RAV4 (19 Dec 2022), dark Mazda sedan (14 Dec 2022).
+
+The Mazda 6 set is auction-house photography - Rop presumably owns the car, not the photos. That
+is different from the Gumtree screenshots, which show another seller's car entirely: excluded.
+
+Left DRAFT deliberately: no year, no odometer, no price. Rop said to leave KMs out; year is only a
+body-shape range (Mazda 323 BJ ~1998-2003, Corolla E120 ~2001-2006, Mazda 6 GJ ~2013-2016) and a
+wrong year on a real listing is a misrepresentation, so it is unset rather than guessed. Empty
+price renders POA. The Corolla has NO trim badge fitted - do not write "Ascent". To publish: fill
+year + price, hit Publish.
+
+## Carsales card anatomy (the stated design reference)
+
+  [21 photo count] / "2015 Toyota Corolla" / "Ascent Auto F" / $17,990 /
+  "Drive away ... Excl. Govt. Charges" / FAIR PRICE /
+  Sedan . Automatic . 4cyl 1.8L Petrol . 93,083 km / "Dealer used . QLD"
+
+Gaps in car-card.php: no photo-count badge; engine renders as separate pills instead of
+"4cyl 1.8L Petrol"; no price qualifier; seller line is "Suburb, STATE" not "Dealer used . VIC";
+variant folded into the title.
+
+## Blocked
+
+- Rop still cannot sign in as ropkiplagat - the WP notification email never arrived. Set a password
+  via Users -> ropkiplagat -> Edit. The contractor accounts cannot safely be removed until then.
