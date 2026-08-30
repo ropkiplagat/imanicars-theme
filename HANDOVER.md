@@ -128,6 +128,33 @@ files in it. Rop believed the photos were there. The folder exists; the work beh
 the same success-artefact shape as ADR-014 and the Nicole call bug. Verify a folder has FILES, not
 just that it was created.
 
+## These listings are DEMO content (Rop, 2026-08-30)
+
+"all photos are demo ones - use what you can to help me show car dealerships". The site is a
+demo shown to prospective dealership clients, not live stock sold to consumers. That retires the
+earlier concern about invented odometer/price figures. It does NOT retire plate masking, EXIF
+stripping or auction-brand removal - those are about looking professional and not publishing
+third-party marks. Rule from Rop: "where one photo exists, use it" - a single-photo listing is fine.
+
+## WhatsApp images: checked, no cars
+
+107 WhatsApp images already sat in C:/Users/cc/Downloads. Contact-sheeted all of them: FXPulse
+trading alerts, PLC/meter tender documents, family photos, payment receipts, Imani Wellness and
+MarkAe brochures. ZERO car photos. Do not re-search this source.
+
+## Mazda 6 - two mask treatments, and why
+
+Final media: featured 93772 (01), gallery 93750,93751,93773,93775,93754,93774,93756,93757,93758.
+Marks removed: VIC plate 2AE 5XK, auction paperwork on the dash (01/02/10), lot sticker (06).
+
+Treatment depends on the backdrop:
+  - Behind glass or in a dark bumper recess -> solid dark block. Reads as deliberate redaction.
+  - Small sticker on clean bodywork -> colour-matched fill sampled from the surrounding panel.
+    A black square on a car's rear quarter looks worse than the sticker, which defeats the point
+    on a site meant to impress dealerships.
+  - mazda6-07's sticker is deliberately LEFT: the panel has a gradient there, so the fill read as
+    a pale rectangle, more conspicuous than the round mark it replaced. Not an oversight.
+
 ## Photo handling - what bit, and what to avoid
 
 Source photos live in C:/Users/cc/imani-cars-photos (outside this repo).
