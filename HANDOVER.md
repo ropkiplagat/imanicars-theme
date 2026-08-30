@@ -72,7 +72,36 @@ rsync exit 255. Transient SiteGround SSH reachability, not a code fault. 2 of 4 
 failed the same way. f31161b did land and is verified on the server; 7cae815 (docs only) did not.
 Always confirm a deploy against the server, never against the push.
 
-## Blocked
+## Listings created 2026-08-30
+
+Media (first real uploads on the site): 93741 corolla-e120-01-web, 93742 mazda-323-01-web.
+Vehicles: 93747 "Mazda 323 Sedan", 93748 "Toyota Corolla Sedan" - both DRAFT.
+Taxonomies assigned on both: vehicle_make (Mazda 497 / Toyota 495), vehicle_body (Sedan 522),
+vehicle_city (Melbourne 518), vehicle_condition (Used 523).
+
+Photos came from Rop's Google Photos, masked in C:SERSIMANI-CARS-PHOTOS.
+THREE PLATES HIDDEN: EACH CAR'S OWN, PLUS 1GT 1NV - A THIRD CAR VISIBLE THROUGH THE MAZDA'S
+WINDSCREEN. EXIF STRIPPED; THE COROLLA CARRIED GPS 37DEG57'10.7"S 145DEG09'17.1"E (SE MELBOURNE),
+WHICH WOULD HAVE PUBLISHED A HOME ADDRESS. VERIFY MASKS BY RE-CROPPING AFTER MASKING, NOT BY
+TRUSTING THE SCRIPT.
+
+LEFT DRAFT DELIBERATELY: NO YEAR, NO ODOMETER, NO PRICE. ROP SAID TO LEAVE KMS OUT; YEAR IS ONLY
+A BODY-SHAPE RANGE (MAZDA 323 BJ ~1998-2003, COROLLA E120 ~2001-2006) AND A WRONG YEAR ON A REAL
+LISTING IS A MISREPRESENTATION, SO IT IS UNSET RATHER THAN GUESSED. EMPTY PRICE RENDERS POA. THE
+COROLLA HAS NO TRIM BADGE FITTED - DO NOT WRITE "ASCENT". TO PUBLISH: FILL YEAR + PRICE, HIT
+PUBLISH. OWNERSHIP OF BOTH CARS IS STILL UNCONFIRMED BY ROP.
+
+## CARSALES CARD ANATOMY (THE STATED DESIGN REFERENCE)
+
+  [21 PHOTO COUNT] / "2015 TOYOTA COROLLA" / "ASCENT AUTO F" / ,990 /
+  "DRIVE AWAY ... EXCL. GOVT. CHARGES" / FAIR PRICE /
+  SEDAN . AUTOMATIC . 4CYL 1.8L PETROL . 93,083 KM / "DEALER USED . QLD"
+
+GAPS IN CAR-CARD.PHP: NO PHOTO-COUNT BADGE; ENGINE RENDERS AS SEPARATE PILLS INSTEAD OF
+"4CYL 1.8L PETROL"; NO PRICE QUALIFIER; SELLER LINE IS "SUBURB, STATE" NOT "DEALER USED . VIC";
+VARIANT FOLDED INTO THE TITLE.
+
+## BLOCKED
 
 - Google Photos: the Chrome-extension session has no Photos access (Gmail,
   Calendar, Drive only). Route photos via Drive, a local folder, or direct attach.
