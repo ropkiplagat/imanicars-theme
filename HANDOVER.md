@@ -207,6 +207,40 @@ letterboxed phone screenshot - prefer pr-03).
 Uploader gotcha: the WP plupload queue silently drops files on batches above ~11 and stalls
 part-way. Call window.uploader.start() again and re-check the REST media count until it matches.
 
+## STAGED, NOT YET UPLOADED (2026-09-01)
+
+Masked and verified, waiting on the browser: C:/Users/cc/imani-cars-photos/masked60/
+  auris-silver-1.jpg   Toyota Auris, silver, Hatch  - VIC 1SL 6YW masked
+  camry-grey-1.jpg     Toyota Camry, dark grey, Sedan - VIC plate masked
+  camry-white-1.jpg    Toyota Camry, white, Sedan - auction number "308054" masked in THREE places
+                       (windscreen, bonnet, plus the yellow lot sticker)
+
+MASKING LESSON, cost two rounds today: reading plate coordinates off a 700px-wide grid overlay was
+off by ~60px in y on BOTH 050 and 057 - the first masks sat clear of the plates and left them fully
+readable. The reliable method is to mask, then crop the masked region at 2x and LOOK. Same failure
+shape as the RAV4 (093), where the first box left the yellow plate edge and dealer surround showing.
+Never trust the grid reading alone.
+
+## Session 2026-09-01: 22 vehicles live
+
+Added: 3 utes (93848 Ford Ute, 93849 + 93850 HiLux SR5), then 93856 Toyota Auris, 93857 Corolla
+Hatch, 93858 Corolla Ascent Sport, 93859 Land Cruiser 300, 93863 Corolla Ascent, 93864 RAV4 GX,
+93865 Camry Altise.
+
+Body types now 10 tiles (Caravan added). FILLED: SUV, Sedan, Hatch, Ute. EMPTY: Wagon, Coupe,
+Convertible, People Mover, Van, Caravan - nothing in the library fills these, they need photos
+from elsewhere.
+
+WHAT THE 100-PHOTO PULL ACTUALLY WAS: Google's full "most relevant" car set, downloaded and
+catalogued frame by frame (all60-index.txt + sheet60-1..4.jpg). Roughly 10 distinct vehicles with
+real photos; ~65 were phone SCREENSHOTS of Gumtree/carsales/Pickles/TCV/Autochek listings - other
+sellers' cars. So "about 60 cars" is ~60 car-related images, mostly screenshots. Do not expect a
+second pass to yield much.
+
+DELIBERATELY SKIPPED: the blue Mazda 2 trailer sequence (10 frames, indexes 020-028 + 089). Good
+gallery volume but they are transport photos - car strapped to a trailer, handler in frame - and
+the TRAILER's own rego is visible in all ten. Poor listing photos. Rop can overrule.
+
 ## THE WORKFLOW: "Imani Stock" Google Photos album (2026-09-01)
 
 https://photos.google.com/album/AF1QipOQ2g_FH_gnwRKrbqk188nH0KVk5ePcvoazhFO8
