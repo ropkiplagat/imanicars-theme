@@ -207,6 +207,32 @@ letterboxed phone screenshot - prefer pr-03).
 Uploader gotcha: the WP plupload queue silently drops files on batches above ~11 and stalls
 part-way. Call window.uploader.start() again and re-check the REST media count until it matches.
 
+## Demo-import leftovers purged (2026-08-31)
+
+The Caleader theme demo import left NINE pages carrying the vendor's demo domain
+(smartdata.tonytemplates.com/caleader), EIGHT of them PUBLISHED and publicly reachable. They were
+orphaned - none appeared in a link crawl - but they were indexable, and "listing-elements" alone
+held 96 links to the theme vendor's site.
+
+Unpublished (draft, reversible): 93413 comparing, 2228 listing-elements, 1953 comparing-2,
+1755 testimonial, 1685 services, 1651 about-us-2, 1586 home, 1047 blog-posts.
+
+Checked page_on_front FIRST - it is page 12, so the page slugged "home" (1586) was safely an
+orphan. Do not unpublish 12.
+
+Page 3 privacy-policy: the demo domain in its body was replaced with https://imanicars.com. Still a
+DRAFT and still linked from the footer, so /privacy-policy/ is the one remaining 404. The rest of
+its text is generic WordPress boilerplate about handling customer data - Rop writes that, not an
+agent.
+
+Verified: zero PUBLISHED content matches tonytemplates / caleader / smartdata. 31 links crawled,
+only /privacy-policy/ broken.
+
+STILL PUBLISHED, likely more junk (not touched - WooCommerce is active and may need some):
+shop, cart, cart-2, checkout, checkout-2, my-account, loginregister, inventory, blog-2, listings,
+thank-you, faq, home-page, and THREE contact duplicates (contact, contacts, contact-us) plus
+about-us. Worth a pass, but check what Woo depends on before unpublishing.
+
 ## Link audit + broken-image fix (2026-08-31)
 
 Crawled every internal link. 7 of 36 were 404. Now 30 of 31 resolve.
