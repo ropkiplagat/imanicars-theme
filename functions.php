@@ -857,28 +857,12 @@ add_action( 'init', 'ic_register_vehicle_meta' );
    dependency. ic_unsplash() keeps its signature so all existing call sites
    work unchanged, but now returns a self-contained SVG data URI.
    ========================================================= */
-function ic_placeholder_svg( $w, $h ) {
-    $w = max( 1, (int) $w );
-    $h = max( 1, (int) $h );
-
-    // Car silhouette scaled to the tile, centred, on the theme's grey.
-    $cw = $w * 0.52;
-    $ch = $cw * 0.42;
-    $cx = ( $w - $cw ) / 2;
-    $cy = ( $h - $ch ) / 2;
-
-    $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' . $w . '" height="' . $h . '" '
-         . 'viewBox="0 0 ' . $w . ' ' . $h . '" preserveAspectRatio="xMidYMid slice">'
-         . '<rect width="' . $w . '" height="' . $h . '" fill="#e8e8e8"/>'
-         . '<g transform="translate(' . round( $cx, 2 ) . ' ' . round( $cy, 2 ) . ') '
-         . 'scale(' . round( $cw / 100, 4 ) . ' ' . round( $ch / 42, 4 ) . ')" fill="#c8c8c8">'
-         . '<path d="M6 30 L10 16 Q12 11 18 11 L62 11 Q69 11 73 16 L84 28 L92 30 '
-         . 'Q96 31 96 34 L96 38 L4 38 L4 34 Q4 31 6 30 Z"/>'
-         . '<circle cx="26" cy="38" r="7" fill="#b4b4b4"/>'
-         . '<circle cx="72" cy="38" r="7" fill="#b4b4b4"/>'
-         . '</g></svg>';
-
-    return 'data:image/svg+xml;charset=UTF-8,' . rawurlencode( $svg );
+function ic_placeholder_svg( $w = 400, $h = 267 ) {
+    // A bundled file, not a data: URI. Every call site wraps this in
+    // esc_url(), which strips the data protocol by default - that turned the
+    // placeholder into src="" and left the tiles blank instead of broken.
+    unset( $w, $h );
+    return IC_THEME_URI . '/assets/images/placeholder-car.svg';
 }
 
 /**
