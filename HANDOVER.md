@@ -207,6 +207,42 @@ letterboxed phone screenshot - prefer pr-03).
 Uploader gotcha: the WP plupload queue silently drops files on batches above ~11 and stalls
 part-way. Call window.uploader.start() again and re-check the REST media count until it matches.
 
+## Full cleanup pass (2026-08-31)
+
+Published pages 28 -> 18. Everything remaining is legitimate:
+  12 home-page (THE FRONT PAGE - page_on_front=12, never unpublish)
+  shop / my-account / cart / checkout   kept: WooCommerce is ACTIVE and needs them
+  finance sell-your-car contact terms brisbane melbourne perth darwin
+  list-your-car pricing dealers used-cars about-imani-car-sales
+
+Drafted (reversible) on top of the 8 demo pages: contacts, faq, blog-2, cart-2, checkout-2,
+inventory, loginregister, about-us, contact-us, thank-you, listings. Duplicates and old-theme
+leftovers; cart-2/checkout-2/contacts/contact-us were straight duplicates of live pages.
+
+/about/ was a SOFT-404 - no page, no template, but WordPress served an empty document with status
+200. Worse than a 404: a link crawl scores it as working and search engines index a blank page.
+New page 93843 at /about-imani-car-sales/ with factual content only (Melbourne, used vehicles,
+Japanese imports, where to enquire - no invented years/staff/volumes). WordPress REFUSES to release
+the "about" slug; nothing queryable in any post type or status holds it, so an old plugin rewrite
+likely does. Footer repointed to the new slug (7271c7c).
+
+## BUG FOUND + FIXED: every generic page had an empty <title>
+
+Eight pages rendered "<title> | Imani Cars" with nothing before the separator, including ALL FOUR
+city landing pages that exist to rank.
+
+Cause: pre_get_document_title hands its filter an EMPTY STRING. It replaces WordPress's title
+generation rather than decorating it, so the old fallback `return $title . ' | Imani Cars'` could
+only ever emit the separator. Any page not named explicitly in ic_document_title was affected.
+Fixed 73aea9d by building the title (is_singular / is_search / is_404 / archive / site name).
+
+Then 0f1a75a: the first fix prefixed "Used Cars for Sale " onto titles that already read "Cars for
+Sale Brisbane", giving "Used Cars for Sale Cars for Sale Brisbane". Only "Used " was missing.
+Verified: /brisbane/ now "Used Cars for Sale Brisbane | Imani Cars".
+
+Adding one About page is what exposed a bug affecting eight. Check the rendered <title> of a
+generic page after any change to ic_document_title.
+
 ## Demo-import leftovers purged (2026-08-31)
 
 The Caleader theme demo import left NINE pages carrying the vendor's demo domain
