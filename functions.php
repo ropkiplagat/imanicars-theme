@@ -285,7 +285,8 @@ function ic_document_title( $title ) {
         return get_the_title() . ' for Sale | Imani Cars';
     }
     if ( is_page( [ 'brisbane', 'melbourne', 'perth', 'darwin' ] ) ) {
-        return 'Used Cars for Sale ' . get_the_title() . ' | Imani Cars';
+        // Titles already read "Cars for Sale Brisbane"; only "Used " is missing.
+        return 'Used ' . get_the_title() . ' | Imani Cars';
     }
 
     /* pre_get_document_title hands this filter an EMPTY string - it replaces
