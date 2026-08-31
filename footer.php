@@ -65,7 +65,7 @@
         <div class="ic-footer__col">
           <h3 class="ic-footer__heading"><?php esc_html_e( 'Company', 'imanicars' ); ?></h3>
           <ul class="ic-footer__links">
-            <li><a href="<?php echo esc_url( home_url( '/about/' ) ); ?>"><?php esc_html_e( 'About Imani Cars', 'imanicars' ); ?></a></li>
+            <li><a href="<?php echo esc_url( home_url( '/about-imani-car-sales/' ) ); ?>"><?php esc_html_e( 'About Imani Cars', 'imanicars' ); ?></a></li>
             <li><a href="<?php echo esc_url( home_url( '/contact/' ) ); ?>"><?php esc_html_e( 'Contact Us', 'imanicars' ); ?></a></li>
             <li><a href="<?php echo esc_url( home_url( '/privacy-policy/' ) ); ?>"><?php esc_html_e( 'Privacy Policy', 'imanicars' ); ?></a></li>
             <li><a href="<?php echo esc_url( home_url( '/terms/' ) ); ?>"><?php esc_html_e( 'Terms of Service', 'imanicars' ); ?></a></li>
