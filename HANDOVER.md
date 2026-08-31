@@ -207,6 +207,23 @@ letterboxed phone screenshot - prefer pr-03).
 Uploader gotcha: the WP plupload queue silently drops files on batches above ~11 and stalls
 part-way. Call window.uploader.start() again and re-check the REST media count until it matches.
 
+## Link audit + broken-image fix (2026-08-31)
+
+Crawled every internal link. 7 of 36 were 404. Now 30 of 31 resolve.
+
+  /dealers/          MAIN NAV LINK, 404 - page-dealers.php existed, the PAGE did not. Created 93822.
+  /used-cars/        same story. Created 93823; 302s to /cars/.
+  /terms-of-service/ footer link, but the page has always lived at /terms/. Link repointed.
+  /careers/ /advertise/ /news/  no page, no template. Links REMOVED from footer rather than
+                     shipping three stub pages. Restoring any = revert fa242ec + create a page.
+  /privacy-policy/   STILL 404 BY CHOICE. Page id 3 exists as a draft, but its body is theme
+                     boilerplate opening "Our website address is:
+                     https://smartdata.tonytemplates.com/caleader". Do not publish as-is - that
+                     puts another company's domain in Imani's privacy policy. Rop to write it.
+
+Vehicles: the 12 wrong-image demo listings are now DRAFT. 12 real cars published, including
+93825 Toyota Prado TX (grey, 1 photo) - a different vehicle from the black 93821 Toyota Prado.
+
 ## FIXED: 24 of 33 Unsplash IDs were dead (2026-08-31)
 
 The theme hardcoded 33 Unsplash photo IDs; 24 now return 404. The homepage "Browse by Body Type"
@@ -217,6 +234,13 @@ Fix (191169c): ic_unsplash() keeps its signature so all 16 call sites work uncha
 returns a self-contained SVG data URI via ic_placeholder_svg(). No remote dependency left to rot.
 Body-type tiles go further and use ic_body_type_image(), which pulls the featured image of a real
 published vehicle of that type - SUV now shows the Prado, Sedan the Sonata, Hatch the Yaris Hybrid.
+
+SECOND BUG, IN THE FIRST FIX: the placeholder was returned as an SVG data: URI, but all 16 call
+sites wrap it in esc_url(), which strips the data protocol unless explicitly allowed. The six
+body-type tiles with no car behind them rendered src="" - blank rather than broken, no better.
+Fixed in 480c802 by shipping assets/images/placeholder-car.svg as a real file. Verified: 9 tiles =
+3 real uploads + 6 placeholder + 0 empty. Lesson: check the rendered HTML of ALL cases, not the
+ones that happen to have data behind them.
 
 VERIFY THROUGH THE CACHE: origin (?cb=) shows 0 Unsplash refs, but the plain URL still returned
 X-Proxy-Cache: HIT with 39 stale refs. SiteGround's Speed Optimizer plugin is INSTALLED BUT
