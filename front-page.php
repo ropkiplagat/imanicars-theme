@@ -272,6 +272,7 @@ get_header();
           [ 'slug' => 'Convertible', 'label' => 'Convertible', 'seed' => '1601049861-adf3849d0e53' ],
           [ 'slug' => 'People Mover','label' => 'People Mover','seed' => '1633956100-a84cc7791db1' ],
           [ 'slug' => 'Van',         'label' => 'Van',         'seed' => '1599007229-c10a0d14d1d3' ],
+          [ 'slug' => 'Caravan',     'label' => 'Caravan',     'seed' => '' ],
       ];
       foreach ( $types_data as $type ) :
       ?>
