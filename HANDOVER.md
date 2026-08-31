@@ -177,6 +177,54 @@ No drafts remain. Site total: 19 published vehicles = 12 original demo + these 7
 Price renders POA on every card because _ic_price is empty by choice. Odometer is absent by Rop's
 instruction. Year is set only on the RAV4, where the filename asserted it.
 
+## Four more cars from WhatsApp (2026-08-31) - 11 real cars live
+
+Rop downloaded WhatsApp media to Downloads himself; that is the working route, not trawling chats.
+Both WhatsApp sources reachable from here are empty of cars (107 images in Downloads, and the
+"whatsapp photos" album which is 12 videos from 2020).
+
+  93794 Toyota Yaris Hybrid       12 photos  silver, Japanese import
+  93808 Honda Vezel               13 photos  black, Japanese import
+  93820 Toyota Land Cruiser Sahara 9 photos  black 200 Series V8
+  93821 Toyota Prado               2 photos  black
+All hero shots are front 3/4. Published and verified live: 200, zero Unsplash refs, thumbnail
+counts 12/13/9/2.
+
+Excluded on purpose - do NOT add back:
+  - Yaris img 02: a stamped CHASSIS NUMBER on the sill. A VIN on a public page enables history
+    lookups on a real vehicle.
+  - Yaris img 03: a photo of the key.
+  - Vezel img 03: byte-identical duplicate of img 02.
+
+Only ONE plate needed masking across all four (the black Prado's front plate). Japanese auction
+photos arrive with plates removed or pre-blurred. The Vezel cluster legibly reads 058013 km; left
+visible, because masking an odometer is itself a red flag in car sales.
+
+STILL TO ADD: a GREY Prado, distinct from the black one. Files staged at
+C:/Users/cc/imani-cars-photos/prado/pr-03.jpg (clean front 3/4) and pr-04.jpg (same car,
+letterboxed phone screenshot - prefer pr-03).
+
+Uploader gotcha: the WP plupload queue silently drops files on batches above ~11 and stalls
+part-way. Call window.uploader.start() again and re-check the REST media count until it matches.
+
+## FIXED: 24 of 33 Unsplash IDs were dead (2026-08-31)
+
+The theme hardcoded 33 Unsplash photo IDs; 24 now return 404. The homepage "Browse by Body Type"
+tiles, the dealer CTA banner, the 404 page, the dealers page and list-your-car were all rendering
+alt text instead of photos. A dead <img> fails silently - nothing logged, nothing warned.
+
+Fix (191169c): ic_unsplash() keeps its signature so all 16 call sites work unchanged, but now
+returns a self-contained SVG data URI via ic_placeholder_svg(). No remote dependency left to rot.
+Body-type tiles go further and use ic_body_type_image(), which pulls the featured image of a real
+published vehicle of that type - SUV now shows the Prado, Sedan the Sonata, Hatch the Yaris Hybrid.
+
+VERIFY THROUGH THE CACHE: origin (?cb=) shows 0 Unsplash refs, but the plain URL still returned
+X-Proxy-Cache: HIT with 39 stale refs. SiteGround's Speed Optimizer plugin is INSTALLED BUT
+INACTIVE, so there is no in-WP purge; purge from SiteGround Site Tools or wait for TTL.
+
+Also noted: 11 plugins are dead ("Plugin file does not exist") - the caleader-* and motors-*
+suites from a previous car-dealership theme.
+
 ## AUDITED: all 12 demo listings show the WRONG CAR (2026-08-31)
 
 Downloaded every featured image and looked at the pixels. The FILENAMES match the listing titles,
