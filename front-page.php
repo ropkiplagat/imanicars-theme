@@ -277,7 +277,7 @@ get_header();
       ?>
       <a href="<?php echo esc_url( home_url( '/cars/?body_type=' . urlencode( $type['slug'] ) ) ); ?>" class="ic-type-tile">
         <div class="ic-type-tile__img-wrap">
-          <img src="<?php echo esc_url( ic_unsplash( $type['seed'], 280, 187 ) ); ?>"
+          <img src="<?php echo esc_url( ic_body_type_image( $type['slug'], 280, 187 ) ); ?>"
                alt="<?php echo esc_attr( $type['label'] . ' cars for sale' ); ?>"
                width="280" height="187" loading="lazy" class="ic-type-tile__img">
         </div>

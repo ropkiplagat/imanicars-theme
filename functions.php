@@ -206,7 +206,10 @@ function ic_format_price( $price ) {
    HELPER — UNSPLASH IMAGE URL
    ========================================================= */
 function ic_unsplash( $seed, $w, $h ) {
-    return 'https://images.unsplash.com/photo-' . esc_attr( $seed ) . '?auto=format&fit=crop&w=' . intval( $w ) . '&h=' . intval( $h ) . '&q=80';
+    // $seed is ignored: the IDs this theme hardcoded are mostly dead upstream.
+    // Kept as a parameter so the sixteen existing call sites need no edit.
+    unset( $seed );
+    return ic_placeholder_svg( $w, $h );
 }
 
 /* =========================================================
@@ -842,3 +845,66 @@ function ic_register_vehicle_meta() {
     }
 }
 add_action( 'init', 'ic_register_vehicle_meta' );
+
+/* =========================================================
+   PLACEHOLDER IMAGES
+   24 of the 33 hardcoded Unsplash photo IDs this theme shipped with now
+   return 404, so the homepage body-type tiles, the dealer banner, the 404
+   page and the dealers page were all rendering broken images. Nothing here
+   warned about it: a dead <img> just shows its alt text.
+
+   Rather than swap in fresh IDs that can rot the same way, drop the remote
+   dependency. ic_unsplash() keeps its signature so all existing call sites
+   work unchanged, but now returns a self-contained SVG data URI.
+   ========================================================= */
+function ic_placeholder_svg( $w, $h ) {
+    $w = max( 1, (int) $w );
+    $h = max( 1, (int) $h );
+
+    // Car silhouette scaled to the tile, centred, on the theme's grey.
+    $cw = $w * 0.52;
+    $ch = $cw * 0.42;
+    $cx = ( $w - $cw ) / 2;
+    $cy = ( $h - $ch ) / 2;
+
+    $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' . $w . '" height="' . $h . '" '
+         . 'viewBox="0 0 ' . $w . ' ' . $h . '" preserveAspectRatio="xMidYMid slice">'
+         . '<rect width="' . $w . '" height="' . $h . '" fill="#e8e8e8"/>'
+         . '<g transform="translate(' . round( $cx, 2 ) . ' ' . round( $cy, 2 ) . ') '
+         . 'scale(' . round( $cw / 100, 4 ) . ' ' . round( $ch / 42, 4 ) . ')" fill="#c8c8c8">'
+         . '<path d="M6 30 L10 16 Q12 11 18 11 L62 11 Q69 11 73 16 L84 28 L92 30 '
+         . 'Q96 31 96 34 L96 38 L4 38 L4 34 Q4 31 6 30 Z"/>'
+         . '<circle cx="26" cy="38" r="7" fill="#b4b4b4"/>'
+         . '<circle cx="72" cy="38" r="7" fill="#b4b4b4"/>'
+         . '</g></svg>';
+
+    return 'data:image/svg+xml;charset=UTF-8,' . rawurlencode( $svg );
+}
+
+/**
+ * Featured image of a published vehicle with this body type, so the
+ * "Browse by Body Type" tiles show the stock actually on the site.
+ * Falls back to the placeholder when no car of that type is listed yet -
+ * an empty category should look deliberate, not broken.
+ */
+function ic_body_type_image( $body_type, $w = 280, $h = 187 ) {
+    $q = new WP_Query( [
+        'post_type'      => 'vehicle',
+        'post_status'    => 'publish',
+        'posts_per_page' => 1,
+        'fields'         => 'ids',
+        'no_found_rows'  => true,
+        'meta_query'     => [
+            [ 'key' => '_ic_body_type', 'value' => $body_type, 'compare' => '=' ],
+        ],
+    ] );
+
+    if ( ! empty( $q->posts ) && has_post_thumbnail( $q->posts[0] ) ) {
+        $url = wp_get_attachment_image_url( get_post_thumbnail_id( $q->posts[0] ), 'ic-card' );
+        if ( $url ) {
+            return $url;
+        }
+    }
+
+    return ic_placeholder_svg( $w, $h );
+}
