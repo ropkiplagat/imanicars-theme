@@ -284,7 +284,28 @@ function ic_document_title( $title ) {
         }
         return get_the_title() . ' for Sale | Imani Cars';
     }
-    return $title . ' | Imani Cars';
+    if ( is_page( [ 'brisbane', 'melbourne', 'perth', 'darwin' ] ) ) {
+        return 'Used Cars for Sale ' . get_the_title() . ' | Imani Cars';
+    }
+
+    /* pre_get_document_title hands this filter an EMPTY string - it replaces
+       WordPress's title generation rather than decorating it. Appending to
+       $title therefore produced a bare " | Imani Cars" on every page not
+       named above, including all four city landing pages. Build the title. */
+    if ( is_singular() ) {
+        return get_the_title() . ' | Imani Cars';
+    }
+    if ( is_search() ) {
+        return 'Search results | Imani Cars';
+    }
+    if ( is_404() ) {
+        return 'Page not found | Imani Cars';
+    }
+    $archive = get_the_archive_title();
+    if ( $archive ) {
+        return wp_strip_all_tags( $archive ) . ' | Imani Cars';
+    }
+    return 'Imani Cars';
 }
 add_filter( 'pre_get_document_title', 'ic_document_title' );
 
