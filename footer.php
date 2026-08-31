@@ -67,11 +67,8 @@
           <ul class="ic-footer__links">
             <li><a href="<?php echo esc_url( home_url( '/about/' ) ); ?>"><?php esc_html_e( 'About Imani Cars', 'imanicars' ); ?></a></li>
             <li><a href="<?php echo esc_url( home_url( '/contact/' ) ); ?>"><?php esc_html_e( 'Contact Us', 'imanicars' ); ?></a></li>
-            <li><a href="<?php echo esc_url( home_url( '/careers/' ) ); ?>"><?php esc_html_e( 'Careers', 'imanicars' ); ?></a></li>
             <li><a href="<?php echo esc_url( home_url( '/privacy-policy/' ) ); ?>"><?php esc_html_e( 'Privacy Policy', 'imanicars' ); ?></a></li>
-            <li><a href="<?php echo esc_url( home_url( '/terms-of-service/' ) ); ?>"><?php esc_html_e( 'Terms of Service', 'imanicars' ); ?></a></li>
-            <li><a href="<?php echo esc_url( home_url( '/advertise/' ) ); ?>"><?php esc_html_e( 'Advertise with Us', 'imanicars' ); ?></a></li>
-            <li><a href="<?php echo esc_url( home_url( '/news/' ) ); ?>"><?php esc_html_e( 'Car News', 'imanicars' ); ?></a></li>
+            <li><a href="<?php echo esc_url( home_url( '/terms/' ) ); ?>"><?php esc_html_e( 'Terms of Service', 'imanicars' ); ?></a></li>
           </ul>
         </div>
 
