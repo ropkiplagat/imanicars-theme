@@ -207,6 +207,41 @@ letterboxed phone screenshot - prefer pr-03).
 Uploader gotcha: the WP plupload queue silently drops files on batches above ~11 and stalls
 part-way. Call window.uploader.start() again and re-check the REST media count until it matches.
 
+## THE WORKFLOW: "Imani Stock" Google Photos album (2026-09-01)
+
+https://photos.google.com/album/AF1QipOQ2g_FH_gnwRKrbqk188nH0KVk5ePcvoazhFO8
+
+Rop drops cars in; an agent takes the whole album end to end - mask plates, strip EXIF, body-type,
+publish. CHECK THIS ALBUM FIRST for any "add more cars" request.
+
+Why it exists: the Google Photos "car" search is NOT a stock folder. It runs back to June 2022 and
+mixes real cars with carsales.com.au app screenshots of OTHER sellers' cars (recognisable by the
+orange Call/SMS/Message bar), Pickles auction invoices, tractors and farm equipment, WhatsApp
+contact lists and bank transfers. A blind bulk upload puts a tractor and a bidding record on the
+portal. The album is the signal of intent that the search cannot give.
+
+## ROP IS NOW LMCT LICENSED (2026-09-01)
+
+Licensed Motor Car Trader - he can legally sell OTHER PEOPLE'S cars through the portal. This
+retires the "whose car is it" blocker that stalled earlier sessions: for listing purposes it no
+longer matters, provided the REGO IS MASKED. It does NOT retire: masking, EXIF stripping, or
+excluding other dealers' copyrighted listing photography.
+
+**Raised with Rop, unresolved:** the auction invoices in his library include "PURCHASED FROM A
+DAMAGED MOTOR VEHICLE SALE - SOLD UNREGISTERED", "Statutory Write-off, unable to be re-registered"
+and "HAIL DAMAGE". Under LMCT a statutory write-off is a disclosure he is legally on the hook for.
+Photos cannot be matched to invoices from here - Rop must confirm none of the published cars came
+from those lots.
+
+## PORTAL POSITIONING: it is a capability demo
+
+Shown to friends and dealerships to prove the platform handles every body type. So coverage across
+body types matters more than stock accuracy. Body types now: SUV, Sedan, Hatch, Ute, Wagon, Coupe,
+Convertible, People Mover, Van, Caravan (10 tiles). FILLED: SUV, Sedan, Hatch, Ute. EMPTY: Wagon,
+Coupe, Convertible, People Mover, Van, Caravan.
+
+15 vehicles published. Utes added 2026-09-01: 93848 Ford Ute, 93849 + 93850 Toyota HiLux SR5.
+
 ## Full cleanup pass (2026-08-31)
 
 Published pages 28 -> 18. Everything remaining is legitimate:
