@@ -481,3 +481,37 @@ variant folded into the title.
 
 - Rop still cannot sign in as ropkiplagat - the WP notification email never arrived. Set a password
   via Users -> ropkiplagat -> Edit. The contractor accounts cannot safely be removed until then.
+
+## Salvage board at /insurance (2026-09-08)
+
+Private, login-gated auction board. Branch `feat/salvage-board`. Full detail in
+`docs/SALVAGE-BOARD.md`; gate with `py tools/check.py` (44 hard gates, runs the
+219-assertion PHP suite as gate #1).
+
+**The finding that shaped the build: this repo is PUBLIC and rsyncs to the live
+web root.** Committing the salvage dataset would have published 132 lots with
+valuations and bidding verdicts on GitHub — worse than any indexing failure, and
+the exact leak the login gate exists to prevent. So code is in the repo, data
+never is: lots live only in `wp_ic_salvage_*` tables, imported by upload through
+wp-admin, and two hard gates block data or real stock numbers from being
+committed. Test fixtures are synthetic.
+
+`/insurance` is deliberately NOT in robots.txt — a Disallow line would publish the
+path being protected. noindex meta + X-Robots-Tag + absent from sitemap instead.
+
+The brief was wrong about its own source data: no `imani_salvage_scan_2026-09-08.xlsx`
+exists, the sheets it names do not exist, and there are **132 lots, not 343**
+(65 IAA + 57 Pickles + 10 Manheim, from two 7 Sep workbooks in ~/Downloads). The
+three-week price tracker does not exist yet either — the board creates it empty.
+Of the four skills the brief names, only `frontend-design` is installed.
+
+### Not signed off — needs a live session
+
+**UAT 3, the password-reset email, should be assumed BROKEN.** This file already
+records that WP mail on this host silently failed to deliver the `ropkiplagat`
+account notification. SMTP must be configured and a reset link actually seen in
+the inbox before that item is ticked. Also outstanding: login redirect in a
+private window, noindex in live source, the 132-row import spot-check, the four
+export buttons, and one-handed phone use.
+
+Nothing has been merged to `main`, so nothing has deployed.
