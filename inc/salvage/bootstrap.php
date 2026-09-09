@@ -13,6 +13,7 @@ require_once IC_SALVAGE_DIR . '/fees.php';
 require_once IC_SALVAGE_DIR . '/rules.php';
 require_once IC_SALVAGE_DIR . '/saledate.php';
 require_once IC_SALVAGE_DIR . '/normalise.php';
+require_once IC_SALVAGE_DIR . '/books.php';
 require_once IC_SALVAGE_DIR . '/schema.php';
 require_once IC_SALVAGE_DIR . '/repo.php';
 require_once IC_SALVAGE_DIR . '/view.php';

@@ -19,10 +19,19 @@ if ( ! $files ) {
 	exit( 1 );
 }
 
-$last = '';
+/**
+ * Test files are loaded inside a closure so their local variables cannot reach
+ * the runner's. Requiring them at top level shares scope, and a `$f` in a test
+ * silently overwrites this loop's `$f` — which is how a passing suite turned
+ * into a fatal in basename().
+ */
+$load = static function ( $ic_test_file ) {
+	require $ic_test_file;
+};
+
 foreach ( $files as $f ) {
 	$before = $GLOBALS['ic_t']['pass'] + $GLOBALS['ic_t']['fail'];
-	require $f;
+	$load( $f );
 	$after = $GLOBALS['ic_t']['pass'] + $GLOBALS['ic_t']['fail'];
 	if ( $after === $before ) {
 		$GLOBALS['ic_t']['fail']++;

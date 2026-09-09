@@ -25,6 +25,7 @@ require_once $root . '/inc/salvage/fees.php';
 require_once $root . '/inc/salvage/rules.php';
 require_once $root . '/inc/salvage/saledate.php';
 require_once $root . '/inc/salvage/normalise.php';
+require_once $root . '/inc/salvage/books.php';
 
 function ic_test( $name ) {
 	$GLOBALS['ic_t']['current'] = $name;
