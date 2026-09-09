@@ -183,8 +183,19 @@ gate("IAA schedule is 14.95% + $135 over $1,000, no export admin", HARD,
 gate("Pickles schedule is 15% + $160, plus $236 admin and $36 transfer", HARD,
      "'pct'          => 1500" in fees and "'flat'         => 16000" in fees
      and "'export_admin' => 23600" in fees and "'transfer'     => 3600" in fees)
-gate("Manheim fee is unknown and is never estimated", HARD,
-     "'known'  => false" in fees and "403" in fees)
+# Manheim's schedule was retrieved on 10 Sep 2026. It only ever 403'd to a bare
+# fetch; a browser User-Agent gets HTTP 200. The invariant is no longer "unknown"
+# — it is "sourced from the published table, and cited".
+gate("Manheim schedule is the published one, $120 + 15% over $1,000", HARD,
+     "'pct'          => 1500" in fees
+     and "'flat'         => 12000" in fees
+     and "array( 20000, 12100 )" in fees
+     and "Aug 2026" in fees)
+gate("Manheim claims no export admin fee it does not publish", HARD,
+     re.search(r"'Manheim'\s*=>\s*array\((?:[^)]|\)(?!,\s*\)))*?'export_admin'\s*=>\s*0", fees, re.S)
+     is not None)
+gate("sub-$1,000 bands charge no percentage", HARD,
+     "'bands'" in fees and "banded" in fees)
 gate("money is integer cents, never a float multiply", HARD,
      "intdiv" in fees and not re.search(r"\*\s*0\.1495|\*\s*0\.15\b", fees))
 gate("duty is never implied to be included", HARD, "CRSP" in fees)

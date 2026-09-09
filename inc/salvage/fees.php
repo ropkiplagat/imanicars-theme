@@ -35,8 +35,10 @@ class IC_Salvage_Fees {
 				'pct'          => 1495,
 				'flat'         => 13500,
 				'flat_over'    => 100000,
+				'bands'        => null, // IAA does not publish a sub-$1,000 schedule.
 				'export_admin' => 0,
 				'transfer'     => 0,
+				'gst_inclusive' => null, // Not stated on the IAA schedule.
 				'source_note'  => 'IAA published schedule: 14.95% + $135 over $1,000. No export admin fee.',
 			),
 			'Pickles' => array(
@@ -45,14 +47,26 @@ class IC_Salvage_Fees {
 				'pct'          => 1500,
 				'flat'         => 16000,
 				'flat_over'    => 100000,
-				'export_admin' => 23600,
+				// Verified on pickles.com.au/fees/salvage, 9 Sep 2026. Below
+				// $1,000 the fee is a flat band with NO percentage component.
+				'bands'        => array( array( 9999, 3300 ), array( 49999, 14000 ), array( 99999, 24500 ) ),
+				'export_admin' => 23600, // per INVOICE, not per vehicle
 				'transfer'     => 3600,
-				'source_note'  => 'Pickles published schedule: 15% + $160 over $1,000, plus $236 export admin and $36 transfer.',
+				'gst_inclusive' => true,
+				'source_note'  => 'Pickles published schedule: 15% + $160 over $1,000; $33/$140/$245 flat below. Plus $236 export admin per invoice and $36 transfer. All fees GST inclusive.',
 			),
 			'Manheim' => array(
-				'label'  => 'Manheim',
-				'known'  => false,
-				'reason' => 'Manheim has not published a retrievable buyer fee schedule — its fee PDF returns HTTP 403. No fee is shown because none is known.',
+				'label'        => 'Manheim',
+				'known'        => true,
+				'pct'          => 1500,
+				'flat'         => 12000,
+				'flat_over'    => 100000,
+				// Salvage table, Buyer-Auction-Fees-Aug26.pdf, effective 1 Aug 2026.
+				'bands'        => array( array( 20000, 12100 ), array( 50000, 14800 ), array( 100000, 22000 ) ),
+				'export_admin' => 0, // Manheim publishes no export admin fee.
+				'transfer'     => 0,
+				'gst_inclusive' => true,
+				'source_note'  => 'Manheim salvage schedule: $120 + 15% over $1,000; $121/$148/$220 flat below. No export admin fee. All prices include GST unless stated otherwise. Effective 1 August 2026.',
 			),
 		);
 	}
@@ -90,6 +104,7 @@ class IC_Salvage_Fees {
 			'caveats'            => array(),
 			'unavailable_reason' => null,
 			'partial'            => false,
+			'banded'             => false,
 		);
 
 		if ( ! isset( $schedules[ $key ] ) ) {
@@ -119,40 +134,66 @@ class IC_Salvage_Fees {
 		$out['known']  = true;
 		$out['hammer'] = $hammer;
 
-		$fee  = 0;
-		$prem = self::pct_of( $hammer, $s['pct'] );
-		$fee += $prem;
+		$fee = 0;
 
-		$out['components'][] = array(
-			'label'  => sprintf( 'Buyer premium %s%%', self::pct_label( $s['pct'] ) ),
-			'amount' => $prem,
-		);
-
-		// The flat component is published only ABOVE the threshold. At or below it we
-		// do not know what is charged, so the quote is explicitly partial rather than
-		// quietly assuming zero.
-		if ( $hammer > $s['flat_over'] ) {
-			if ( $s['flat'] > 0 ) {
-				$fee += $s['flat'];
+		if ( $hammer <= $s['flat_over'] && ! empty( $s['bands'] ) ) {
+			// Below the threshold these houses charge a flat BAND with no
+			// percentage at all — not a reduced premium. Applying the percentage
+			// here would overcharge every small lot.
+			$band = null;
+			foreach ( $s['bands'] as $b ) {
+				if ( $hammer <= $b[0] ) { $band = $b; break; }
+			}
+			if ( null !== $band ) {
+				$fee += $band[1];
 				$out['components'][] = array(
-					'label'  => sprintf( 'Flat fee (over %s)', IC_Salvage_Money::format( $s['flat_over'] ) ),
-					'amount' => $s['flat'],
+					'label'  => sprintf( 'Banded fee (to %s)', IC_Salvage_Money::format( $band[0] ) ),
+					'amount' => $band[1],
+				);
+				$out['banded'] = true;
+			}
+		} else {
+			$prem = self::pct_of( $hammer, $s['pct'] );
+			$fee += $prem;
+			$out['components'][] = array(
+				'label'  => sprintf( 'Buyer premium %s%%', self::pct_label( $s['pct'] ) ),
+				'amount' => $prem,
+			);
+
+			// The flat component is published only ABOVE the threshold. Where a
+			// house publishes nothing below it, the quote is explicitly partial
+			// rather than quietly assuming zero.
+			if ( $hammer > $s['flat_over'] ) {
+				if ( $s['flat'] > 0 ) {
+					$fee += $s['flat'];
+					$out['components'][] = array(
+						'label'  => sprintf( 'Flat fee (over %s)', IC_Salvage_Money::format( $s['flat_over'] ) ),
+						'amount' => $s['flat'],
+					);
+				}
+			} elseif ( $s['flat'] > 0 ) {
+				$out['partial']   = true;
+				$out['caveats'][] = sprintf(
+					'%s publishes its %s flat fee only for hammer prices over %s. At %s the flat component is not published, so this fee is incomplete.',
+					$s['label'],
+					IC_Salvage_Money::format( $s['flat'] ),
+					IC_Salvage_Money::format( $s['flat_over'] ),
+					IC_Salvage_Money::format( $hammer )
 				);
 			}
-		} elseif ( $s['flat'] > 0 ) {
-			$out['partial']   = true;
-			$out['caveats'][] = sprintf(
-				'%s publishes its %s flat fee only for hammer prices over %s. At %s the flat component is not published, so this fee is incomplete.',
-				$s['label'],
-				IC_Salvage_Money::format( $s['flat'] ),
-				IC_Salvage_Money::format( $s['flat_over'] ),
-				IC_Salvage_Money::format( $hammer )
-			);
 		}
 
 		if ( $s['export_admin'] > 0 ) {
 			$fee += $s['export_admin'];
-			$out['components'][] = array( 'label' => 'Export admin', 'amount' => $s['export_admin'] );
+			$out['components'][] = array( 'label' => 'Export admin (per invoice)', 'amount' => $s['export_admin'] );
+			// Charged once per invoice, not per vehicle. Included here because a
+			// single-lot purchase is the common case, but a multi-lot invoice
+			// pays it once — so this figure overstates every lot after the first.
+			$out['caveats'][] = sprintf(
+				'Includes the %s export admin fee, which %s charges once per INVOICE, not per vehicle. On a multi-lot invoice this overstates every lot after the first.',
+				IC_Salvage_Money::format( $s['export_admin'] ),
+				$s['label']
+			);
 		}
 		if ( $s['transfer'] > 0 ) {
 			$fee += $s['transfer'];
