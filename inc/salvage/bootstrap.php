@@ -18,10 +18,12 @@ require_once IC_SALVAGE_DIR . '/books.php';
 require_once IC_SALVAGE_DIR . '/schema.php';
 require_once IC_SALVAGE_DIR . '/repo.php';
 require_once IC_SALVAGE_DIR . '/view.php';
+require_once IC_SALVAGE_DIR . '/mail-status.php';
 require_once IC_SALVAGE_DIR . '/access.php';
 require_once IC_SALVAGE_DIR . '/ajax.php';
 require_once IC_SALVAGE_DIR . '/import.php';
 
+IC_Salvage_Mail::init();
 IC_Salvage_Access::init();
 IC_Salvage_Ajax::init();
 IC_Salvage_Import::init();

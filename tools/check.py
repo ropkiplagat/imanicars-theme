@@ -282,6 +282,38 @@ gate("estimate vs actual never averages a range into a midpoint", HARD,
 gate("an unreadable estimate yields null, never zero", HARD,
      "'unparsed'" in est and "never 0" in est_t)
 
+# 7c — mail failure is reported, and reporting it leaks nothing
+print("\nMail honesty")
+mail = read("inc/salvage/mail-status.php") or ""
+mail_t = read("tests/salvage/test_mail.php") or ""
+
+# WordPress prints "Check your email" even when wp_mail() failed outright. On a
+# host with no SMTP that is a success message for something that never happened.
+gate("a failed send is recorded with its reason", HARD,
+     "wp_mail_failed" in mail and "OPT_LAST_FAIL" in mail)
+gate("the lost-password screen contradicts the false reassurance", HARD,
+     "login_message" in mail
+     and "lostpassword" in mail and "checkemail" in mail)
+gate("a successful send CLEARS the warning — no permanent banner", HARD,
+     "wp_mail_succeeded" in mail
+     and "delete_option( self::OPT_LAST_FAIL )" in mail
+     and "STALE_DAYS" in mail)
+# The reason string is printed on a PUBLIC login screen. PHPMailer quotes the
+# SMTP conversation back, and that can carry the reset key for the very email
+# that failed.
+gate("the reported reason is scrubbed of credentials", HARD,
+     "function scrub" in mail
+     and "[redacted]" in mail
+     and "https?://" in mail)
+gate("scrubbing is by SHAPE, not only by keyword", HARD,
+     re.search(r"\[A-Za-z0-9\]\{10,\}", mail) is not None
+     and "X-Auth-Token" in mail_t)
+gate("the scrubber is tested against real credential formats", HARD,
+     all(k in mail_t for k in ("SendGrid key", "WP reset key", "base64 blob"))
+     and "api_key" in mail_t)
+gate("scrubbing keeps ordinary diagnostics readable", HARD,
+     "monkey" in mail_t and "port 25" in mail_t)
+
 # 8 — the board UI
 print("\nBoard UI")
 page = page_src

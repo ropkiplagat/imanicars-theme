@@ -187,6 +187,52 @@ points at Export as the fallback.
 
 ---
 
+## Password reset, and why it silently fails
+
+Rop asked for the reset to be fixed "so that i can see password". The reset
+screen already shows the password in plain text — the problem is that he never
+reaches that screen, because the email never arrives.
+
+WordPress's lost-password flow prints **"Check your email for the confirmation
+link"** whenever `retrieve_password()` returns, and it returns successfully even
+when `wp_mail()` failed outright. On a host with no SMTP — which this one is —
+that is a success message for something that never happened. It is the exact
+failure this board is built to prevent, shipped by WordPress core.
+
+`mail-status.php` records every `wp_mail` failure with its reason and
+contradicts that reassurance on the lost-password screen and in wp-admin.
+
+Two constraints on it:
+
+- **No permanent warning.** A banner that is always on is camouflage; it stops
+  being read and then hides the one time it mattered. Nothing shows unless a
+  send actually failed, a successful send *deletes* the record, and a failure
+  older than 30 days ages out.
+- **No secrets, ever.** The reason string is printed on a **public** login
+  screen, and PHPMailer quotes the SMTP conversation back in its errors — which
+  can carry an AUTH line, an API key, or the reset key for the very email that
+  failed. `scrub()` redacts by **shape**, not by label: any token mixing letters
+  and digits over ten characters, any URL, any 20+ character blob.
+
+The keyword rule alone was not enough, and the suite proved it twice:
+
+- `key` does **not** match inside `api_key` — underscore is a word
+  character — so the first version leaked every `api_key=` value onto the login
+  page.
+- With `X-Auth-Token: abc123def456`, the keyword rule matched `Auth`, consumed
+  `-Token:` as its value, and let the token walk past untouched.
+
+Both are now regression tests. Ordinary diagnostics stay readable: `535`,
+`port 25`, `localhost` and the recipient address all survive, because they are
+digits-only or letters-only.
+
+**This does not make mail work.** SMTP still has to be configured with a
+SendGrid key, and that key goes into an SMTP plugin — never into this theme, this
+repository, or a chat message. Until then the board's Email button and every
+password reset will fail, and now they will *say* they failed.
+
+---
+
 ## Three-state rendering
 
 Every flag has three renderings, not two: true, false, and **unknown**. Unknown
