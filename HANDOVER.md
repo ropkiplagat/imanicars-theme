@@ -3,6 +3,79 @@
 Chrome audits, Code implements. The browser session has no repo and loses
 scrollback; this file is the shared state. Update it at the end of any session.
 
+## Salvage board — state at 10 Sep 2026, 22:30 AEST
+
+Deployed to `main` (a42afd5, 82961cb), both Actions runs green.
+**608 unit assertions, 68 hard gates, all passing.** Run both before touching it:
+
+    MSYS_NO_PATHCONV=1 docker run --rm -v "$(pwd):/app" -w /app php:8.2-cli php tests/salvage/run.php
+    py tools/check.py
+
+### Shipped this session
+
+- **The three destination books are wired end to end.** They were correct and
+  DEAD before this: `books.php` passed all its tests while nothing called it,
+  and the board still filtered on a single Kenya flag. Bands set by Rop:
+  Imani Car Rentals **2008-2010** (WOVR N/A only), Uganda **2011-2018**,
+  Kenya **2019+**. Disjoint, brute-forced in the suite. Filter checkboxes,
+  a Book column, per-book counts, and book columns in the CSV.
+- **Estimate vs auction price** (`estimate.php`). Pre-bid ceiling against
+  observed hammer, with the variance. A range is measured from the end the
+  price missed — never a midpoint.
+- **Email actually emails.** Was a link opening the local mail client with a
+  20-row text summary and no attachment. Now posts to the server, which
+  attaches the same CSV the Export button builds.
+- **Export bug fixed:** an unpriced lot said "not found", the same string
+  Manheim gets for publishing no fee schedule. Different facts, different text.
+- **Mail failure is now visible** (`mail-status.php`). See below.
+
+### Password reset — what is actually wrong
+
+The reset screen already shows the password in plain text. Rop never reaches it,
+because **the email never arrives**. WordPress prints "Check your email" even
+when `wp_mail()` failed outright, so a total failure looks like a success.
+
+That reassurance is now contradicted on the lost-password screen and in
+wp-admin, with the transport's own reason, scrubbed of anything key-shaped.
+
+**This does not make mail work.** Still needed, and only Rop can do it:
+
+1. Install an SMTP plugin (WP Mail SMTP or similar).
+2. Create a NEW, scoped SendGrid API key in the SendGrid UI.
+3. Paste it into the plugin. **Never** into the theme, the repo, or a chat
+   message — including to an agent.
+
+Until then the Email button and every password reset will fail, and will say so.
+
+**If Rop is locked out entirely:** the reset email is not the only route. He can
+change the password from Users → Profile while already logged in, or via
+SiteGround's WP-CLI (`wp user update <login> --user_pass=...`) typed by him at
+his own terminal. Do not ask an agent to do this and do not route a password
+through chat.
+
+### Still open on the board
+
+- **Multi-sheet `.xlsx` export** matching the IAA_shortlist shape (Assumptions /
+  Lots / Bid tracker / Blockers / Fees applied). The CSV now carries every
+  column it would; only the workbook structure is missing.
+- **Full item-list harvest** — all ~363 Pickles lots, not just the nine targets.
+- **IAA sale time** is not published in the feed. 9 Sep ran 10:00 AEST from
+  IAA's own clock; confirm rather than assume for any given sale.
+- **Sole-admin lockout risk** is still open until SMTP lands or a second admin
+  exists.
+
+### Standing rules on this board
+
+- Never click a bid control, and never enter a live bidding UI.
+- Never authenticate on Rop's behalf.
+- Valuations, the cost stack and lot data never enter the public repo. Two gates
+  enforce it, and they scan untracked files too — the first version only scanned
+  `git ls-files` and a planted stock number sailed straight through.
+- A credential-shaped literal must not appear even in a test fixture. Assemble
+  it at runtime; do not allowlist the file.
+
+---
+
 ## Live facts (verified, with method)
 
 | Fact | Method |
