@@ -1,0 +1,344 @@
+/* ============================================================
+   SALVAGE BOARD — /insurance
+   Private, data-dense, phone-first on sale mornings.
+
+   Colour carries meaning only. Red is a rejection or a missing
+   figure; amber is a deadline; green is a passed check. Nothing on
+   this page is coloured for decoration, so that a red cell always
+   means "do not bid on this assumption".
+   ============================================================ */
+
+.sb {
+  /* Neutrals carry the UI. */
+  --sb-bg:       #f7f7f6;
+  --sb-surface:  #ffffff;
+  --sb-line:     #e2e0dc;
+  --sb-line-2:   #cfccc6;
+  --sb-ink:      #1a1a18;
+  --sb-ink-2:    #56534d;
+  --sb-ink-3:    #767267;
+
+  /* Semantic. */
+  --sb-ok:       #1c6b46;
+  --sb-ok-bg:    #e6f2eb;
+  --sb-warn:     #8a5200;
+  --sb-warn-bg:  #fdf0dc;
+  --sb-bad:      #a32020;
+  --sb-bad-bg:   #fbe9e9;
+  --sb-urgent:   #8c2c00;
+  --sb-urgent-bg:#ffe6d9;
+  --sb-accent:   var(--brand-red, #fa3232);
+
+  --sb-1: 4px; --sb-2: 8px; --sb-3: 12px; --sb-4: 16px; --sb-6: 24px; --sb-8: 32px;
+  --sb-r: 5px;
+  --sb-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  background: var(--sb-bg);
+  color: var(--sb-ink);
+  padding: var(--sb-6) 0 var(--sb-8);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.sb-container { max-width: 1600px; margin: 0 auto; padding: 0 var(--sb-4); }
+
+.sb-sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------- Header ---------- */
+.sb-head { margin-bottom: var(--sb-4); }
+.sb-head__row { display: flex; align-items: center; gap: var(--sb-3); flex-wrap: wrap; }
+.sb-head__title { font-size: 28px; font-weight: 700; line-height: 1.15; margin: 0; }
+.sb-private {
+  font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--sb-ink-2); border: 1px solid var(--sb-line-2);
+  padding: 2px var(--sb-2); border-radius: var(--sb-r); background: var(--sb-surface);
+}
+.sb-head__meta { font-size: 13px; color: var(--sb-ink-2); margin: var(--sb-2) 0 0; }
+.sb-stale { color: var(--sb-bad); }
+
+/* ---------- Standing caveats ----------
+   Text, always visible, never a tooltip. These are the four things the
+   numbers below would otherwise be read as saying. */
+.sb-standing {
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-line);
+  border-left: 3px solid var(--sb-ink-3);
+  border-radius: var(--sb-r);
+  padding: var(--sb-3) var(--sb-4);
+  margin-bottom: var(--sb-4);
+  display: grid; gap: var(--sb-2);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.sb-standing p { margin: 0; font-size: 13px; color: var(--sb-ink-2); line-height: 1.45; }
+.sb-standing strong { color: var(--sb-ink); display: block; }
+
+.sb-alert { padding: var(--sb-3) var(--sb-4); border-radius: var(--sb-r); margin-bottom: var(--sb-4); font-size: 14px; }
+.sb-alert--bad { background: var(--sb-bad-bg); border: 1px solid var(--sb-bad); color: var(--sb-bad); }
+
+/* ---------- Summary ---------- */
+.sb-summary {
+  background: var(--sb-surface); border: 1px solid var(--sb-line);
+  border-radius: var(--sb-r); padding: var(--sb-4); margin-bottom: var(--sb-4);
+}
+.sb-lede { display: flex; align-items: baseline; gap: var(--sb-4); flex-wrap: wrap; }
+.sb-lede__num {
+  font-size: 52px; font-weight: 700; line-height: 1;
+  font-variant-numeric: tabular-nums; color: var(--sb-ink);
+}
+.sb-lede__label { font-size: 17px; font-weight: 600; }
+.sb-lede__sub { font-size: 13px; color: var(--sb-ink-2); margin-top: 2px; }
+.sb-lede__caveat { display: block; color: var(--sb-warn); }
+
+.sb-counts {
+  list-style: none; margin: var(--sb-4) 0 0; padding: var(--sb-3) 0 0;
+  border-top: 1px solid var(--sb-line);
+  display: flex; flex-wrap: wrap; gap: var(--sb-6);
+  font-size: 13px; color: var(--sb-ink-2);
+}
+.sb-counts li { display: flex; align-items: baseline; gap: var(--sb-1); }
+.sb-counts__n { font-size: 19px; font-weight: 700; color: var(--sb-ink); font-variant-numeric: tabular-nums; }
+.sb-counts__n--bad { color: var(--sb-bad); }
+
+.sb-bymodel { margin-top: var(--sb-4); border-top: 1px solid var(--sb-line); padding-top: var(--sb-3); }
+.sb-bymodel > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--sb-ink-2); }
+
+/* ---------- Filters ---------- */
+.sb-filters {
+  background: var(--sb-surface); border: 1px solid var(--sb-line);
+  border-radius: var(--sb-r); padding: var(--sb-4); margin-bottom: var(--sb-3);
+}
+.sb-filters__grid {
+  display: grid; gap: var(--sb-3);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+.sb-field { display: flex; flex-direction: column; gap: var(--sb-1); }
+.sb-field > label,
+.sb-field__legend {
+  font-size: 12px; font-weight: 600; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--sb-ink-3);
+}
+.sb-field input[type="search"],
+.sb-field input[type="number"],
+.sb-field input[type="date"],
+.sb-field input[type="text"],
+.sb-field select {
+  /* 16px keeps iOS from zooming the viewport on focus — the board is used
+     one-handed on a phone and a zoom jump loses the row you were on. */
+  font-size: 16px;
+  padding: var(--sb-2);
+  min-height: 40px;
+  border: 1px solid var(--sb-line-2);
+  border-radius: var(--sb-r);
+  background: #fff; color: var(--sb-ink);
+  width: 100%;
+}
+.sb-field select[multiple] { min-height: 96px; padding: var(--sb-1); }
+.sb-field--pair { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--sb-2); }
+.sb-field--pair .sb-field__legend { flex: 1 0 100%; }
+.sb-field--pair input { width: auto; flex: 1 1 90px; min-width: 0; }
+
+.sb-field--checks { gap: var(--sb-2); justify-content: flex-start; }
+.sb-check { display: flex; gap: var(--sb-2); align-items: flex-start; font-size: 14px; cursor: pointer; min-height: 44px; }
+.sb-check input { width: 20px; height: 20px; margin-top: 2px; flex: none; }
+.sb-check small { display: block; font-size: 12px; color: var(--sb-ink-3); }
+
+.sb-filters__actions { display: flex; gap: var(--sb-2); margin-top: var(--sb-3); flex-wrap: wrap; }
+
+/* ---------- Buttons ---------- */
+.sb-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 0 var(--sb-4);
+  font-size: 14px; font-weight: 600; font-family: inherit;
+  border: 1px solid var(--sb-line-2); border-radius: var(--sb-r);
+  background: var(--sb-surface); color: var(--sb-ink);
+  cursor: pointer; text-decoration: none;
+}
+.sb-btn:hover { background: #f0efec; color: var(--sb-ink); }
+.sb-btn--primary { background: var(--sb-ink); border-color: var(--sb-ink); color: #fff; }
+.sb-btn--primary:hover { background: #000; color: #fff; }
+.sb-btn--big { min-height: 48px; font-size: 16px; flex: 1 1 auto; }
+
+.sb :focus-visible { outline: 2px solid var(--sb-accent); outline-offset: 2px; }
+
+.sb-actions { display: flex; gap: var(--sb-2); flex-wrap: wrap; align-items: center; margin-bottom: var(--sb-3); }
+.sb-actions__status { font-size: 13px; color: var(--sb-ink-2); }
+
+/* ---------- Table ---------- */
+.sb-tablewrap {
+  overflow-x: auto;
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-line);
+  border-radius: var(--sb-r);
+}
+.sb-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.sb-table th, .sb-table td { text-align: left; padding: var(--sb-3); vertical-align: top; }
+.sb-table thead th {
+  font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--sb-ink-3); background: #fafaf9;
+  border-bottom: 1px solid var(--sb-line-2); white-space: nowrap;
+  position: sticky; top: 0; z-index: 2;
+}
+.sb-table tbody tr { border-bottom: 1px solid var(--sb-line); }
+.sb-table tbody tr:last-child { border-bottom: 0; }
+.sb-table tbody td { min-height: 36px; }
+.sb-table--compact th, .sb-table--compact td { padding: var(--sb-2) var(--sb-3); }
+
+/* Money and counts: tabular, right-aligned. */
+.sb-num, .sb-table th.sb-num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.sb-row--rejected { background: var(--sb-bad-bg); }
+.sb-row--past { opacity: .62; }
+
+.sb-cell-note { font-size: 12px; color: var(--sb-ink-3); margin-top: 2px; line-height: 1.35; }
+.sb-cell-note--warn { color: var(--sb-warn); }
+.sb-cell-warn {
+  font-size: 12px; color: var(--sb-bad); margin-top: var(--sb-1);
+  line-height: 1.35; max-width: 30ch;
+}
+
+.sb-unknown { color: var(--sb-ink-3); cursor: help; border-bottom: 1px dotted var(--sb-line-2); }
+
+.sb-stock { font-family: var(--sb-mono); font-size: 13px; font-weight: 600; }
+.sb-vehicle { font-weight: 600; }
+
+.sb-sale__date { font-weight: 600; white-space: nowrap; }
+.sb-sale__flags { display: flex; gap: var(--sb-1); flex-wrap: wrap; margin-top: var(--sb-1); }
+
+/* ---------- Flags ---------- */
+.sb-flag {
+  display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .04em;
+  padding: 2px 6px; border-radius: 3px; white-space: nowrap;
+}
+.sb-flag--good    { background: var(--sb-ok-bg);     color: var(--sb-ok); }
+.sb-flag--warn    { background: var(--sb-warn-bg);   color: var(--sb-warn); }
+.sb-flag--bad     { background: var(--sb-bad-bg);    color: var(--sb-bad); }
+.sb-flag--urgent  { background: var(--sb-urgent-bg); color: var(--sb-urgent); }
+.sb-flag--off     { background: #f0efec; color: var(--sb-ink-3); font-weight: 600; }
+/* Unknown is visually distinct from both a pass and a fail. */
+.sb-flag--unknown { background: transparent; color: var(--sb-ink-3); border: 1px dashed var(--sb-line-2); font-weight: 600; cursor: help; }
+.sb-flag--neutral { background: #eeedea; color: var(--sb-ink-2); }
+
+.sb-screen { display: flex; flex-direction: column; gap: var(--sb-1); align-items: flex-start; }
+
+.sb-verdict { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .04em; padding: 2px 6px; border-radius: 3px; background: #eeedea; color: var(--sb-ink-2); }
+.sb-verdict--strong  { background: var(--sb-ok-bg);   color: var(--sb-ok); }
+.sb-verdict--good    { background: var(--sb-ok-bg);   color: var(--sb-ok); }
+.sb-verdict--caution { background: var(--sb-warn-bg); color: var(--sb-warn); }
+.sb-verdict--avoid   { background: var(--sb-bad-bg);  color: var(--sb-bad); }
+
+.sb-status { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 6px; border-radius: 3px; }
+.sb-status--live       { background: var(--sb-ok-bg); color: var(--sb-ok); }
+.sb-status--sold       { background: var(--sb-ink); color: #fff; }
+.sb-status--passed     { background: var(--sb-warn-bg); color: var(--sb-warn); }
+.sb-status--withdrawn  { background: #f0efec; color: var(--sb-ink-2); }
+.sb-status--gone       { background: #f0efec; color: var(--sb-ink-3); }
+/* Never observed is not the same as Live, and must not look like it. */
+.sb-status--unobserved { background: transparent; color: var(--sb-ink-3); border: 1px dashed var(--sb-line-2); font-weight: 600; }
+
+/* ---------- Price cell ---------- */
+.sb-pricecell { min-width: 190px; }
+.sb-price__hammer { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sb-price__landed { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.sb-price__qualifier { display: block; font-size: 11px; font-weight: 600; color: var(--sb-ink-3); letter-spacing: .02em; }
+.sb-price__notfound { color: var(--sb-bad); font-weight: 700; font-size: 14px; }
+.sb-price__none { color: var(--sb-ink-3); font-size: 13px; }
+
+/* ---------- Inline price entry ----------
+   The control the board lives or dies on. Everything here is sized for a
+   thumb: 48px targets, 16px inputs, full width on a phone. */
+.sb-entry { margin-top: var(--sb-2); }
+.sb-entry__toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; min-width: 88px; padding: 0 var(--sb-3);
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  border: 1px solid var(--sb-line-2); border-radius: var(--sb-r);
+  background: var(--sb-surface); list-style: none;
+}
+.sb-entry__toggle::-webkit-details-marker { display: none; }
+.sb-entry[open] .sb-entry__toggle { background: var(--sb-ink); border-color: var(--sb-ink); color: #fff; }
+.sb-entry__form {
+  margin-top: var(--sb-2); padding: var(--sb-3);
+  border: 1px solid var(--sb-line-2); border-radius: var(--sb-r); background: #fafaf9;
+  display: flex; flex-direction: column; gap: var(--sb-2); min-width: 240px;
+}
+.sb-entry__row { display: flex; flex-direction: column; gap: var(--sb-1); }
+.sb-entry__row label { font-size: 12px; font-weight: 600; color: var(--sb-ink-3); text-transform: uppercase; letter-spacing: .04em; }
+.sb-entry__row input, .sb-entry__row select {
+  font-size: 16px; min-height: 48px; padding: var(--sb-2);
+  border: 1px solid var(--sb-line-2); border-radius: var(--sb-r); background: #fff; width: 100%;
+}
+.sb-entry__quote { font-size: 13px; min-height: 20px; }
+.sb-entry__quote .sb-q-landed { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; display: block; }
+.sb-entry__quote .sb-q-fee { font-variant-numeric: tabular-nums; }
+.sb-entry__actions { display: flex; gap: var(--sb-2); align-items: center; flex-wrap: wrap; }
+.sb-entry__msg { font-size: 13px; font-weight: 600; }
+.sb-entry__msg--ok { color: var(--sb-ok); }
+.sb-entry__msg--bad { color: var(--sb-bad); }
+.sb-entry__foot { font-size: 11px; color: var(--sb-ink-3); margin: 0; }
+
+/* ---------- Empty state ---------- */
+.sb-empty {
+  background: var(--sb-surface); border: 1px solid var(--sb-line);
+  border-radius: var(--sb-r); padding: var(--sb-8) var(--sb-4); text-align: center;
+}
+.sb-empty h2 { font-size: 20px; margin: 0 0 var(--sb-2); }
+.sb-empty p { color: var(--sb-ink-2); font-size: 14px; margin: 0 auto var(--sb-3); max-width: 60ch; }
+
+.sb-foot { font-size: 12px; color: var(--sb-ink-3); margin-top: var(--sb-3); max-width: 90ch; }
+
+/* ============================================================
+   PHONE — the table becomes cards.
+   Sale mornings happen on a phone, one-handed, standing up.
+   ============================================================ */
+@media (max-width: 900px) {
+  .sb-tablewrap { border: 0; background: transparent; overflow-x: visible; }
+  .sb-table, .sb-table tbody, .sb-table tr, .sb-table td { display: block; width: 100%; }
+  .sb-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+  .sb-table tbody tr {
+    background: var(--sb-surface); border: 1px solid var(--sb-line);
+    border-radius: var(--sb-r); margin-bottom: var(--sb-3); padding: var(--sb-2);
+  }
+  .sb-table tbody tr.sb-row--rejected { border-color: var(--sb-bad); }
+
+  .sb-table td {
+    display: grid; grid-template-columns: 40% 1fr; gap: var(--sb-3);
+    padding: var(--sb-2); border-bottom: 1px solid var(--sb-line);
+  }
+  .sb-table td:last-child { border-bottom: 0; }
+  .sb-table td::before {
+    content: attr(data-label);
+    font-size: 11px; font-weight: 700; letter-spacing: .05em;
+    text-transform: uppercase; color: var(--sb-ink-3);
+  }
+  .sb-num, .sb-table td.sb-num { text-align: left; }
+
+  /* The price entry gets the full card width and the biggest targets. */
+  .sb-pricecell { display: block !important; }
+  .sb-pricecell::before { display: none; }
+  .sb-entry__toggle { width: 100%; min-height: 48px; font-size: 16px; }
+  .sb-entry__form { min-width: 0; }
+  .sb-btn--big { width: 100%; }
+
+  .sb-lede__num { font-size: 42px; }
+  .sb-counts { gap: var(--sb-4); }
+  .sb-head__title { font-size: 23px; }
+}
+
+/* ============================================================
+   PRINT / SAVE AS PDF
+   ============================================================ */
+@media print {
+  .sb { background: #fff; padding: 0; font-size: 10pt; }
+  .sb-filters, .sb-actions, .sb-entry, .sb-private { display: none !important; }
+  .sb-tablewrap { overflow: visible; border: 0; }
+  .sb-table { font-size: 9pt; }
+  .sb-table thead th { position: static; background: #fff; border-bottom: 1pt solid #000; }
+  .sb-table tbody tr { border-bottom: .5pt solid #999; page-break-inside: avoid; }
+  .sb-standing { border: 1pt solid #000; }
+  .sb-row--past { opacity: 1; color: #666; }
+  a[href]::after { content: ""; }
+}

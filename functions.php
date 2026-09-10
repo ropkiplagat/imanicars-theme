@@ -315,6 +315,13 @@ add_filter( 'pre_get_document_title', 'ic_document_title' );
                JSON-LD schema. Runs on wp_head priority 5.
    ========================================================= */
 function ic_seo_head() {
+    /* The salvage board is private. It emits its own noindex tag at wp_head
+       priority 1; none of the public SEO furniture below (canonical, Open Graph,
+       schema, "index, follow") belongs on it. */
+    if ( function_exists( 'ic_salvage_is_board_page' ) && ic_salvage_is_board_page() ) {
+        return;
+    }
+
     $site_url  = 'https://imanicars.com';
     $og_image  = $site_url . '/assets/images/og-imanicars.jpg';
     $logo_url  = $site_url . '/assets/images/logo.png';
@@ -668,6 +675,12 @@ remove_action( 'admin_print_styles',  'print_emoji_styles' );
    NOTE: ic_render_demo_import_page() is defined ONLY in demo-import.php
    ========================================================= */
 require_once IC_THEME_DIR . '/dummy-data/demo-import.php';
+
+/* =========================================================
+   SALVAGE BOARD — private, login-gated auction board at /insurance
+   Single-user, noindex, never listed publicly. See inc/salvage/access.php
+   ========================================================= */
+require_once IC_THEME_DIR . '/inc/salvage/bootstrap.php';
 
 /* =========================================================
    VEHICLE PHOTO GALLERY
