@@ -34,6 +34,7 @@ class IC_Salvage_Repo {
 			'primary_damage', 'secondary_damage', 'damage_published',
 			'keys_present', 'drives', 'starts', 'colour',
 			'location', 'state', 'kebs_eligible', 'kebs_reasons',
+			'book_kenya', 'book_uganda', 'book_rental', 'book_flags', 'book_cy',
 			'flood_pvoc_reject', 'vic_statutory_epa', 'detail_url', 'data_warnings',
 		);
 	}
@@ -204,6 +205,29 @@ class IC_Salvage_Repo {
 			$where[] = '( l.flood_pvoc_reject IS NULL OR l.flood_pvoc_reject = 0 )';
 		}
 
+		// The three destination books, each a checkbox and all of them default
+		// off. Ticking more than one is an OR — "show me anything one of my three
+		// buyers can take" — because the bands are disjoint, so a lot can never
+		// satisfy two at once and an AND would always return nothing.
+		//
+		// Like Kenya-eligible, a book admits only lots PROVEN inside it. NULL is
+		// unknown, and an unknown is not an eligible.
+		$books = array( 'kenya' => 'l.book_kenya', 'uganda' => 'l.book_uganda', 'rental' => 'l.book_rental' );
+		$book_clauses = array();
+		if ( ! IC_Salvage_Schema::lots_column_exists( 'book_kenya' ) ) {
+			// The schema upgrade has not run. Filtering on a column that does not
+			// exist is a fatal; silently dropping the filter would return the whole
+			// board as if it had matched. Drop it here and let the board's own
+			// check tell Rop why the controls are missing.
+			$books = array();
+		}
+		foreach ( (array) ( isset( $f['book'] ) ? $f['book'] : array() ) as $b ) {
+			if ( isset( $books[ $b ] ) ) { $book_clauses[] = $books[ $b ] . ' = 1'; }
+		}
+		if ( $book_clauses ) {
+			$where[] = '( ' . implode( ' OR ', $book_clauses ) . ' )';
+		}
+
 		if ( ! empty( $f['search'] ) ) {
 			global $wpdb;
 			$like    = '%' . $wpdb->esc_like( (string) $f['search'] ) . '%';
@@ -336,6 +360,12 @@ class IC_Salvage_Repo {
 			'priced'       => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$obs} WHERE hammer_cents IS NOT NULL" ),
 			'scan_date'    => $wpdb->get_var( "SELECT MAX(source_scan_date) FROM {$lots}" ),
 			'sources'      => (int) $wpdb->get_var( "SELECT COUNT(DISTINCT source) FROM {$lots}" ),
+			// The oldest calendar year any stored book flag was computed against.
+			// If it is behind today's year the SQL book filters are stale and the
+			// board says so, rather than quietly filtering on last year's bands.
+			'book_cy_min'  => IC_Salvage_Schema::lots_column_exists( 'book_cy' )
+				? $wpdb->get_var( "SELECT MIN(book_cy) FROM {$lots} WHERE book_cy IS NOT NULL" )
+				: null,
 		);
 	}
 

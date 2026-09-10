@@ -33,8 +33,21 @@
 
 get_header();
 
+// Bring the schema up to date from the board itself. maybe_upgrade() otherwise
+// runs only on admin_init, so a deploy followed by a visit straight here — which
+// is exactly how Rop reaches this page — would query columns that do not exist
+// yet. It is one get_option() when there is nothing to do.
+IC_Salvage_Schema::maybe_upgrade();
+
 $filters   = IC_Salvage_View::filters_from_request();
 $tables_ok = IC_Salvage_Schema::tables_exist();
+// If the upgrade could not run (an older DB user without ALTER, say), the book
+// columns are missing and the SQL book filters cannot work. Say so rather than
+// returning an empty board that looks like "no lots match".
+$books_ok  = $tables_ok && IC_Salvage_Schema::lots_column_exists( 'book_kenya' );
+if ( ! $books_ok ) {
+	$filters['book'] = array();
+}
 $rows      = $tables_ok ? IC_Salvage_Repo::query( $filters ) : array();
 $facets    = $tables_ok ? IC_Salvage_Repo::facets() : array( 'source' => array(), 'model' => array(), 'wovr' => array(), 'state' => array(), 'years' => null );
 $totals    = $tables_ok ? IC_Salvage_Repo::totals() : array( 'lots' => 0, 'observations' => 0, 'priced' => 0, 'scan_date' => null, 'sources' => 0 );
@@ -44,9 +57,24 @@ $tz  = wp_timezone();
 $now = ( new DateTimeImmutable( 'now', $tz ) )->format( 'Y-m-d H:i:s' );
 $tzn = $tz->getName();
 
+// The calendar year every book band is measured against. Read once, from the
+// Australian clock, and used for every row — so a page rendered across midnight
+// on 31 December cannot put half its rows in one year's bands and half in the
+// next.
+$cy = IC_Salvage_Books::calendar_year();
+
+// Books are RECOMPUTED here rather than read from the stored columns. The stored
+// columns are a filter index for SQL; they were computed against whatever year
+// the import ran in, and every band moves on 1 January. What Rop reads is
+// computed now.
+$assessed  = array();
+$book_keys = array( 'rental', 'uganda', 'kenya' );
+
 // Counts computed from the rows on screen, so the headline cannot disagree with
 // the table beneath it.
 $c_48h = 0; $c_tomorrow = 0; $c_timed = 0; $c_untimed = 0; $c_kenya = 0; $c_flood = 0; $c_epa = 0;
+$c_book  = array( 'kenya' => 0, 'uganda' => 0, 'rental' => 0 );
+$c_stale = 0;
 foreach ( $rows as $r ) {
 	if ( $r->sale_datetime ) {
 		$c_timed++;
@@ -58,7 +86,30 @@ foreach ( $rows as $r ) {
 	if ( 1 === (int) $r->kebs_eligible ) { $c_kenya++; }
 	if ( 1 === (int) $r->flood_pvoc_reject ) { $c_flood++; }
 	if ( 1 === (int) $r->vic_statutory_epa ) { $c_epa++; }
+
+	$a = IC_Salvage_Books::assess( IC_Salvage_Books::from_row( $r ), $cy );
+	$assessed[ (int) $r->id ] = $a;
+	if ( true === $a['kenya_ok'] )     { $c_book['kenya']++; }
+	if ( true === $a['uganda_ok'] )    { $c_book['uganda']++; }
+	if ( true === $a['au_rental_ok'] ) { $c_book['rental']++; }
+
+	// Does the stored filter index still agree with the live rule? A mismatch
+	// means the SQL book checkboxes are filtering on something other than what
+	// this page displays, and that must be visible rather than inferred.
+	if ( $books_ok && isset( $r->book_cy ) && null !== $r->book_cy ) {
+		$stored = array( (int) $r->book_kenya, (int) $r->book_uganda, (int) $r->book_rental );
+		$live   = array(
+			true === $a['kenya_ok'] ? 1 : 0,
+			true === $a['uganda_ok'] ? 1 : 0,
+			true === $a['au_rental_ok'] ? 1 : 0,
+		);
+		if ( $stored !== $live ) { $c_stale++; }
+	}
 }
+
+// Stale when the index was built for an earlier year, or when any row's stored
+// flags no longer match the live rule.
+$book_index_stale = ( ! empty( $totals['book_cy_min'] ) && (int) $totals['book_cy_min'] < $cy ) || $c_stale > 0;
 
 $scan_age = null;
 if ( ! empty( $totals['scan_date'] ) ) {
@@ -111,6 +162,34 @@ $export_url = wp_nonce_url( add_query_arg( array_merge( $_GET, array( 'ic_salvag
 		</div>
 	<?php endif; ?>
 
+	<?php if ( $tables_ok && ! $books_ok ) : ?>
+		<div class="sb-alert sb-alert--warn">
+			<strong><?php esc_html_e( 'The book columns are not in the database yet.', 'imanicars' ); ?></strong>
+			<?php esc_html_e( 'The three-book badges below are computed live and are correct, but the book filter CHECKBOXES are hidden because there is nothing in SQL to filter on. Open wp-admin once to let the schema upgrade run, then reload this page.', 'imanicars' ); ?>
+		</div>
+	<?php endif; ?>
+
+	<?php if ( $tables_ok && $books_ok && $book_index_stale ) : ?>
+		<div class="sb-alert sb-alert--warn">
+			<strong><?php esc_html_e( 'The book filter index is out of date.', 'imanicars' ); ?></strong>
+			<?php
+			if ( ! empty( $totals['book_cy_min'] ) && (int) $totals['book_cy_min'] < $cy ) {
+				printf(
+					esc_html__( 'Stored book flags were computed against %1$d and it is now %2$d — every band has moved a year. ', 'imanicars' ),
+					(int) $totals['book_cy_min'], (int) $cy
+				);
+			}
+			if ( $c_stale > 0 ) {
+				printf(
+					esc_html( _n( '%d row on this page no longer matches its stored flags. ', '%d rows on this page no longer match their stored flags. ', (int) $c_stale, 'imanicars' ) ),
+					(int) $c_stale
+				);
+			}
+			esc_html_e( 'The badges and counts below are recomputed live and are correct. The book CHECKBOXES filter in SQL against the stored flags, so they may include or omit the wrong lots until the scan is re-imported.', 'imanicars' );
+			?>
+		</div>
+	<?php endif; ?>
+
 	<!-- Standing caveats. Rendered as text, always visible. These are the four
 	     things the numbers below could otherwise be read as saying. -->
 	<div class="sb-standing">
@@ -155,11 +234,25 @@ $export_url = wp_nonce_url( add_query_arg( array_merge( $_GET, array( 'ic_salvag
 
 		<ul class="sb-counts">
 			<li><span class="sb-counts__n"><?php echo count( $rows ); ?></span> <?php esc_html_e( 'lots shown', 'imanicars' ); ?></li>
-			<li><span class="sb-counts__n"><?php echo (int) $c_kenya; ?></span> <?php esc_html_e( 'Kenya-eligible', 'imanicars' ); ?></li>
+			<?php foreach ( $book_keys as $bk ) : ?>
+				<li>
+					<span class="sb-counts__n"><?php echo (int) $c_book[ $bk ]; ?></span>
+					<?php echo esc_html( IC_Salvage_Books::label( $bk ) ); ?>
+					<small class="sb-counts__band"><?php echo esc_html( IC_Salvage_Books::band_label( $bk, $cy ) ); ?></small>
+				</li>
+			<?php endforeach; ?>
 			<li><span class="sb-counts__n sb-counts__n--bad"><?php echo (int) $c_flood; ?></span> <?php esc_html_e( 'flood rejects', 'imanicars' ); ?></li>
 			<li><span class="sb-counts__n sb-counts__n--bad"><?php echo (int) $c_epa; ?></span> <?php esc_html_e( 'need a VIC EPA licence', 'imanicars' ); ?></li>
 			<li><span class="sb-counts__n"><?php echo (int) $totals['priced']; ?></span> <?php esc_html_e( 'hammer prices recorded', 'imanicars' ); ?></li>
 		</ul>
+		<p class="sb-counts__foot">
+			<?php
+			printf(
+				esc_html__( 'Book counts are computed now, against %d. They count only lots PROVEN inside a band — a lot whose year or damage was never published counts in none of the three, and is not the same as a lot that was screened out.', 'imanicars' ),
+				(int) $cy
+			);
+			?>
+		</p>
 
 		<?php if ( $summary ) : ?>
 			<details class="sb-bymodel">
@@ -253,11 +346,36 @@ $export_url = wp_nonce_url( add_query_arg( array_merge( $_GET, array( 'ic_salvag
 				<input type="date" id="sb-sale-to" name="sale_to" value="<?php echo esc_attr( (string) $filters['sale_to'] ); ?>">
 			</div>
 
+			<?php if ( $books_ok ) : ?>
+			<div class="sb-field sb-field--checks sb-field--books">
+				<span class="sb-field__legend"><?php esc_html_e( 'Destination book', 'imanicars' ); ?></span>
+				<?php
+				$book_hints = array(
+					'rental' => __( 'WOVR N/A only. PPSR mandatory — this band is below every state\'s recording threshold.', 'imanicars' ),
+					'uganda' => __( 'Levy is on URA\'s valuation, not on what you pay. Only the oldest year in the band pays 20% instead of 50%.', 'imanicars' ),
+					'kenya'  => __( 'KEBS KS 1515 age window. Water fails PVoC at any age, separately.', 'imanicars' ),
+				);
+				foreach ( $book_keys as $bk ) :
+					?>
+					<label class="sb-check">
+						<input type="checkbox" name="book[]" value="<?php echo esc_attr( $bk ); ?>" <?php checked( in_array( $bk, $filters['book'], true ) ); ?>>
+						<span><?php echo esc_html( IC_Salvage_Books::label( $bk ) ); ?>
+							<code class="sb-band"><?php echo esc_html( IC_Salvage_Books::band_label( $bk, $cy ) ); ?></code>
+							<small><?php echo esc_html( $book_hints[ $bk ] ); ?></small>
+						</span>
+					</label>
+				<?php endforeach; ?>
+				<p class="sb-field__foot">
+					<?php esc_html_e( 'The three bands are disjoint, so no lot is ever in two. Ticking several shows anything one of the three buyers can take. Each admits only lots proven inside its band — an unknown is not an eligible.', 'imanicars' ); ?>
+				</p>
+			</div>
+			<?php endif; ?>
+
 			<div class="sb-field sb-field--checks">
 				<label class="sb-check">
 					<input type="checkbox" name="kenya_only" value="1" <?php checked( $filters['kenya_only'] ); ?>>
-					<span><?php esc_html_e( 'Kenya-eligible only', 'imanicars' ); ?>
-						<small><?php esc_html_e( 'KEBS age window, proven — excludes lots whose eligibility is unknown', 'imanicars' ); ?></small>
+					<span><?php esc_html_e( 'KEBS age window only', 'imanicars' ); ?>
+						<small><?php esc_html_e( 'The imported KEBS column. Narrower than the Kenya book above, which also screens water.', 'imanicars' ); ?></small>
 					</span>
 				</label>
 				<label class="sb-check">
@@ -282,9 +400,29 @@ $export_url = wp_nonce_url( add_query_arg( array_merge( $_GET, array( 'ic_salvag
 		<a class="sb-btn" href="<?php echo esc_url( $export_url ); ?>"><?php esc_html_e( 'Export to Excel (CSV)', 'imanicars' ); ?></a>
 		<button type="button" class="sb-btn" data-sb-copy><?php esc_html_e( 'Copy table', 'imanicars' ); ?></button>
 		<button type="button" class="sb-btn" data-sb-print><?php esc_html_e( 'Print / Save as PDF', 'imanicars' ); ?></button>
-		<a class="sb-btn" id="sb-email" href="#"><?php esc_html_e( 'Email', 'imanicars' ); ?></a>
 		<span class="sb-actions__status" data-sb-status role="status" aria-live="polite"></span>
 	</div>
+
+	<details class="sb-emailbox">
+		<summary class="sb-btn"><?php esc_html_e( 'Email these results', 'imanicars' ); ?></summary>
+		<form class="sb-emailbox__form" data-sb-email method="post">
+			<label for="sb-email-to"><?php esc_html_e( 'Send to', 'imanicars' ); ?></label>
+			<input type="email" id="sb-email-to" name="to" autocomplete="email" required
+				value="<?php echo esc_attr( wp_get_current_user()->user_email ); ?>">
+			<button type="submit" class="sb-btn sb-btn--primary">
+				<?php
+				printf(
+					esc_html( _n( 'Send %d lot', 'Send %d lots', count( $rows ), 'imanicars' ) ),
+					count( $rows )
+				);
+				?>
+			</button>
+			<p class="sb-emailbox__msg" data-sb-email-msg role="status" aria-live="polite"></p>
+			<p class="sb-emailbox__foot">
+				<?php esc_html_e( 'Sends the rows currently on screen, with the same CSV the Export button produces, attached. Private and proprietary — do not forward it to anyone bidding at the same auctions.', 'imanicars' ); ?>
+			</p>
+		</form>
+	</details>
 
 	<!-- ============================================================
 	     THE BOARD
@@ -335,6 +473,7 @@ $export_url = wp_nonce_url( add_query_arg( array_merge( $_GET, array( 'ic_salvag
 				<th scope="col" class="sb-num"><?php esc_html_e( 'Odometer', 'imanicars' ); ?></th>
 				<th scope="col"><?php esc_html_e( 'Damage', 'imanicars' ); ?></th>
 				<th scope="col"><?php esc_html_e( 'Screening', 'imanicars' ); ?></th>
+				<th scope="col"><?php esc_html_e( 'Book', 'imanicars' ); ?></th>
 				<th scope="col"><?php esc_html_e( 'Assessment', 'imanicars' ); ?></th>
 				<th scope="col"><?php esc_html_e( 'Status', 'imanicars' ); ?></th>
 				<th scope="col"><?php esc_html_e( 'Price', 'imanicars' ); ?></th>
@@ -350,6 +489,9 @@ $export_url = wp_nonce_url( add_query_arg( array_merge( $_GET, array( 'ic_salvag
 			$warnings = IC_Salvage_View::json_list( $r->data_warnings );
 			$reasons  = IC_Salvage_View::json_list( $r->kebs_reasons );
 			$rid      = 'lot-' . (int) $r->id;
+			// Recomputed above, against today's calendar year — never read from
+			// the stored filter index.
+			$book_assess = $assessed[ (int) $r->id ];
 
 			$classes = array( 'sb-row' );
 			if ( 1 === (int) $r->flood_pvoc_reject ) { $classes[] = 'sb-row--rejected'; }
@@ -451,6 +593,70 @@ $export_url = wp_nonce_url( add_query_arg( array_merge( $_GET, array( 'ic_salvag
 					<?php endif; ?>
 				</td>
 
+				<td data-label="<?php esc_attr_e( 'Book', 'imanicars' ); ?>">
+					<?php
+					$bk_map = array(
+						'rental' => $book_assess['au_rental_ok'],
+						'uganda' => $book_assess['uganda_ok'],
+						'kenya'  => $book_assess['kenya_ok'],
+					);
+					$in_a_book = false;
+					foreach ( $bk_map as $bk => $ok ) :
+						if ( true !== $ok ) { continue; }
+						$in_a_book = true;
+						$why = implode( ' ', (array) $book_assess['reasons'][ 'rental' === $bk ? 'au_rental' : $bk ] );
+						?>
+						<span class="sb-book sb-book--<?php echo esc_attr( $bk ); ?>" title="<?php echo esc_attr( $why ); ?>">
+							<?php echo esc_html( IC_Salvage_Books::label( $bk ) ); ?>
+						</span>
+					<?php endforeach; ?>
+
+					<?php if ( ! $in_a_book ) : ?>
+						<?php
+						// UNKNOWN and OUT are different answers and must not share a
+						// rendering. "No buyer" reads as a decision; it is only a
+						// decision when the fields it needs were actually published.
+						$unknown_books = array();
+						foreach ( $bk_map as $bk => $ok ) {
+							if ( null === $ok ) { $unknown_books[] = IC_Salvage_Books::label( $bk ); }
+						}
+						?>
+						<?php if ( $unknown_books ) : ?>
+							<span class="sb-flag sb-flag--unknown" title="<?php echo esc_attr( implode( ' ', (array) $book_assess['reasons']['kenya'] ) ); ?>">&mdash;</span>
+							<div class="sb-cell-note sb-cell-note--warn">
+								<?php
+								printf(
+									esc_html__( 'undecided for %s — a field it needs was not published', 'imanicars' ),
+									esc_html( implode( ', ', $unknown_books ) )
+								);
+								?>
+							</div>
+						<?php else : ?>
+							<span class="sb-flag sb-flag--off"><?php esc_html_e( 'no buyer', 'imanicars' ); ?></span>
+							<div class="sb-cell-note"><?php esc_html_e( 'outside all three bands', 'imanicars' ); ?></div>
+						<?php endif; ?>
+					<?php endif; ?>
+
+					<?php
+					// Book flags that change what a lot costs or what it needs. These
+					// are the ones worth money, so they are text on the row, not a
+					// tooltip.
+					$flag_notes = array(
+						'uganda_levy_50pct' => __( '50% URA levy', 'imanicars' ),
+						'uganda_levy_20pct' => __( '20% URA levy', 'imanicars' ),
+						'uganda_levy_nil'   => __( 'no URA levy', 'imanicars' ),
+						'ppsr_mandatory'    => __( 'PPSR mandatory', 'imanicars' ),
+					);
+					foreach ( (array) $book_assess['flags'] as $bf ) :
+						if ( 0 === strpos( $bf, 'uganda_boundary_contested_' ) ) : ?>
+							<div class="sb-cell-warn"><?php esc_html_e( 'contested boundary year — confirm with URA before committing', 'imanicars' ); ?></div>
+						<?php elseif ( isset( $flag_notes[ $bf ] ) ) : ?>
+							<div class="sb-cell-note"><?php echo esc_html( $flag_notes[ $bf ] ); ?></div>
+						<?php endif;
+					endforeach;
+					?>
+				</td>
+
 				<td data-label="<?php esc_attr_e( 'Assessment', 'imanicars' ); ?>">
 					<?php if ( $r->verdict ) : ?>
 						<span class="sb-verdict sb-verdict--<?php echo esc_attr( strtolower( $r->verdict ) ); ?>"><?php echo esc_html( $r->verdict ); ?></span>
@@ -503,6 +709,41 @@ $export_url = wp_nonce_url( add_query_arg( array_merge( $_GET, array( 'ic_salvag
 							<?php endif; ?>
 						<?php else : ?>
 							<div class="sb-price__none"><?php esc_html_e( 'no price recorded', 'imanicars' ); ?></div>
+						<?php endif; ?>
+					</div>
+
+					<?php
+					// ESTIMATE vs ACTUAL — the whole point of a three-week watch.
+					// Compared against the pre-bid ceiling, because that is the
+					// number a bid decision was actually made against. Both sides
+					// must be known; one known side is not a small variance.
+					$cmp     = IC_Salvage_Estimate::compare( $r->high_pre_bid, $r->latest_hammer_cents );
+					$est_str = IC_Salvage_Estimate::format_estimate( $cmp );
+					$var_str = IC_Salvage_Estimate::format_variance( $cmp );
+					?>
+					<div class="sb-vs">
+						<?php if ( null !== $est_str ) : ?>
+							<div class="sb-vs__row">
+								<span class="sb-vs__label"><?php esc_html_e( 'Estimate', 'imanicars' ); ?></span>
+								<span class="sb-vs__est"><?php echo esc_html( $est_str ); ?></span>
+							</div>
+							<?php if ( null !== $var_str ) : ?>
+								<div class="sb-vs__row sb-vs__row--<?php echo esc_attr( $cmp['direction'] ); ?>">
+									<span class="sb-vs__label"><?php esc_html_e( 'Actual vs estimate', 'imanicars' ); ?></span>
+									<span class="sb-vs__delta"><?php echo esc_html( $var_str ); ?></span>
+								</div>
+								<?php if ( $cmp['is_range'] && $cmp['reason'] ) : ?>
+									<div class="sb-cell-note"><?php echo esc_html( $cmp['reason'] ); ?></div>
+								<?php endif; ?>
+							<?php else : ?>
+								<div class="sb-cell-note"><?php echo esc_html( (string) $cmp['reason'] ); ?></div>
+							<?php endif; ?>
+						<?php elseif ( null !== $cmp['reason'] ) : ?>
+							<div class="sb-vs__row">
+								<span class="sb-vs__label"><?php esc_html_e( 'Estimate', 'imanicars' ); ?></span>
+								<span class="sb-unknown">&mdash;</span>
+							</div>
+							<div class="sb-cell-note"><?php echo esc_html( $cmp['reason'] ); ?></div>
 						<?php endif; ?>
 					</div>
 

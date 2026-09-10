@@ -49,6 +49,11 @@ class IC_Salvage_Normalise {
 			'state'               => null,
 			'kebs_eligible'       => null,
 			'kebs_reasons'        => array(),
+			'book_kenya'          => null,
+			'book_uganda'         => null,
+			'book_rental'         => null,
+			'book_flags'          => array(),
+			'book_cy'             => null,
 			'flood_pvoc_reject'   => null,
 			'vic_statutory_epa'   => null,
 			'detail_url'          => null,
@@ -152,6 +157,18 @@ class IC_Salvage_Normalise {
 		if ( null !== $conflict ) {
 			$r['data_warnings'][] = $conflict;
 		}
+
+		// The three destination books. Stored so they can be filtered in SQL;
+		// book_cy records which calendar year the bands were measured against,
+		// because every band moves on 1 January and a stored 1 is only true for
+		// the year it was computed in.
+		$b = IC_Salvage_Books::assess( IC_Salvage_Books::from_row( $r ), $calendar_year );
+		$r['book_kenya']  = $b['kenya_ok'];
+		$r['book_uganda'] = $b['uganda_ok'];
+		$r['book_rental'] = $b['au_rental_ok'];
+		$r['book_flags']  = $b['flags'];
+		$r['book_cy']     = (int) $calendar_year;
+
 		return $r;
 	}
 

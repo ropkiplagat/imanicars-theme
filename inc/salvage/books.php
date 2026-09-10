@@ -58,14 +58,34 @@ class IC_Salvage_Books {
 	 * Year windows — formulas only
 	 * ------------------------------------------------------------- */
 
+	/*
+	 * The three books are CLOSED, DISJOINT year bands, set by Rop on 10 Sep 2026:
+	 *
+	 *   Imani Car Rentals  2008 - 2010   (cy-18 .. cy-16)  WOVR N/A only
+	 *   Uganda             2011 - 2018   (cy-15 .. cy-8)
+	 *   Kenya              2019 +        (cy-7 ..)
+	 *
+	 * Disjoint on purpose: three different buyers, and an overlap means two of
+	 * them bid against each other and inflate a price they both pay. 2011 was
+	 * assigned to Uganda deliberately; it is the contested URA year and stays
+	 * flagged as such.
+	 */
+
 	/** Kenya KEBS: 2019 or later in 2026. */
 	public static function kenya_floor( $cy ) { return (int) $cy - 7; }
 
-	/** Uganda clean floor: 2012 or later in 2026. */
-	public static function uganda_floor( $cy ) { return (int) $cy - 14; }
+	/** Uganda band opens at the contested year: 2011 in 2026. */
+	public static function uganda_floor( $cy ) { return (int) $cy - 15; }
+
+	/** Uganda band closes at 2018 in 2026 — the only year in the band paying 20% levy rather than 50%. */
+	public static function uganda_ceiling( $cy ) { return (int) $cy - 8; }
 
 	/** Uganda contested year: 2011 in 2026 — admitted or not depending on which URA text you read. */
 	public static function uganda_boundary_year( $cy ) { return (int) $cy - 15; }
+
+	/** Australian rental band: 2008 - 2010 in 2026. */
+	public static function rental_floor( $cy ) { return (int) $cy - 18; }
+	public static function rental_ceiling( $cy ) { return (int) $cy - 16; }
 
 	/**
 	 * The year at or above which a `NONE` reading is INFORMATIVE.
@@ -152,30 +172,33 @@ class IC_Salvage_Books {
 		}
 		$year = (int) $year;
 
-		$boundary = self::uganda_boundary_year( $cy );
-		$floor    = self::uganda_floor( $cy );
+		$floor   = self::uganda_floor( $cy );
+		$ceiling = self::uganda_ceiling( $cy );
 
-		if ( $year < $boundary ) {
+		if ( $year < $floor ) {
 			$reasons[] = sprintf( 'First registered %d — older than the 15-year limit for %d.', $year, (int) $cy );
 			return self::result( false, $flags, $reasons, 'ura_database' );
 		}
 
-		if ( $year === $boundary ) {
-			// Two published URA sources disagree at exactly this year. Neither is
-			// picked: the row is flagged with both readings and excluded from
-			// auto-inclusion until URA or a clearing agent settles it.
-			$flags[]   = 'uganda_boundary_' . $boundary;
+		// Above the ceiling the car belongs to the Kenya book, not this one. The
+		// bands are disjoint so two buyers never bid against each other.
+		if ( $year > $ceiling ) {
 			$reasons[] = sprintf(
-				'%d sits on a contested boundary. URA guidance reads "under 15 years old from first registration", which excludes it; URA\'s environmental levy band runs 9 to 15 years, which admits it. Not auto-included — confirm with URA or a clearing agent.',
-				$boundary
+				'First registered %d — newer than the Uganda band (%d-%d). This is Kenya-book stock; the Uganda buyer does not bid on it.',
+				$year, $floor, $ceiling
 			);
-			$flags = array_merge( $flags, self::uganda_levy_flags( $year, $cy, $reasons ) );
-			return self::result( null, $flags, $reasons, 'ura_database' );
+			return self::result( false, $flags, $reasons, 'ura_database' );
 		}
 
-		if ( $year < $floor ) {
-			$reasons[] = sprintf( 'First registered %d — outside the Ugandan window for %d.', $year, (int) $cy );
-			return self::result( false, $flags, $reasons, 'ura_database' );
+		if ( $year === $floor ) {
+			// Rop assigned this year to Uganda on 10 Sep 2026, so it IS eligible —
+			// but two published URA sources still disagree about it and the flag
+			// stays so nobody spends money on it without knowing.
+			$flags[]   = 'uganda_boundary_contested_' . $floor;
+			$reasons[] = sprintf(
+				'%d is the contested boundary year. URA guidance reads "under 15 years old from first registration", which excludes it; URA\'s own environmental levy band runs 9 to 15 years, which admits it. Assigned to the Uganda book by decision, not by resolution — confirm with URA or a clearing agent before committing.',
+				$floor
+			);
 		}
 
 		$flags = array_merge( $flags, self::uganda_levy_flags( $year, $cy, $reasons ) );
@@ -235,62 +258,53 @@ class IC_Salvage_Books {
 			return self::result( null, $flags, $reasons, 'n/a' );
 		}
 
+		// The rental book is a CLOSED year band, 2008-2010 in 2026.
+		if ( null === $year || '' === $year ) {
+			$reasons[] = 'Year not published — cannot place this lot in the rental band.';
+			return self::result( null, $flags, $reasons, 'n/a' );
+		}
+		$year  = (int) $year;
+		$floor = self::rental_floor( $cy );
+		$ceil  = self::rental_ceiling( $cy );
+
+		if ( $year < $floor || $year > $ceil ) {
+			$reasons[] = sprintf(
+				'First registered %d — outside the rental band (%d-%d) for %d.%s',
+				$year, $floor, $ceil, (int) $cy,
+				$year > $ceil ? ' Newer stock belongs to the Uganda or Kenya books; the rental buyer does not bid on it.' : ''
+			);
+			return self::result( false, $flags, $reasons, 'n/a' );
+		}
+
+		// Inside the band, the book takes WOVR N/A only. Anything on the register
+		// needs a WOVI or VIV and is out of scope by Rop's decision of 10 Sep 2026 —
+		// including repairable write-offs, which earlier versions admitted.
 		if ( self::STAT === $wovr ) {
 			$reasons[] = 'Statutory write-off — never registrable, in any state, at any repair cost.';
 			return self::result( false, $flags, $reasons, 'n/a' );
 		}
-
-		if ( self::NONE === $wovr ) {
-			$reasons[] = 'No register entry, so no WOVI or VIV — an ordinary roadworthy applies.';
-			if ( null !== $year && '' !== $year && null !== $state ) {
-				$floor = self::none_informative_floor( $state, $cy );
-				if ( null !== $floor && (int) $year < $floor ) {
-					$flags[]   = 'history_unverified';
-					$reasons[] = sprintf(
-						'%s stopped requiring a total loss to be recorded above this age, so a clean WOVR reading proves nothing for a %d vehicle. Still eligible — run a PPSR check.',
-						$state, (int) $year
-					);
-				}
-			} else {
-				$flags[]   = 'history_unverified';
-				$reasons[] = 'Year or state not published, so the reliability of the clean WOVR reading cannot be judged. Run a PPSR check.';
-			}
-			return self::result( true, $flags, $reasons, 'n/a' );
-		}
-
-		// REP or INSP from here.
-		if ( 'NSW' === $state ) {
-			$flags[]   = 'nsw_not_registrable';
-			$reasons[] = 'NSW repairable write-off — a trade buyer at auction fits none of the four NSW exemptions.';
+		if ( self::NONE !== $wovr ) {
+			$reasons[] = sprintf(
+				'WOVR reads %s. The rental book takes WOVR N/A only — anything on the register carries a WOVI or VIV at any age, and age never removes it.',
+				$wovr
+			);
 			return self::result( false, $flags, $reasons, 'n/a' );
 		}
 
-		if ( self::INSP === $wovr ) {
-			$flags[] = 'inspection_passed';
-			$reasons[] = 'Inspection already passed — the best buy in this pool.';
-		}
+		$reasons[] = 'No register entry, so no WOVI or VIV — an ordinary roadworthy applies.';
 
-		if ( 'VIC' === $state ) {
-			$flags[]   = 'needs_viv';
-			$reasons[] = 'Victoria: roadworthy plus a VIV inspection.';
-			return self::result( true, $flags, $reasons, 'n/a', true );
-		}
-		if ( 'QLD' === $state ) {
-			$flags[]   = 'needs_wovi';
-			$reasons[] = 'Queensland: safety certificate plus a WOVI inspection.';
-			return self::result( true, $flags, $reasons, 'n/a', true );
-		}
-		if ( 'WA' === $state ) {
-			$flags[]   = 'needs_wovi';
-			$reasons[] = 'Western Australia: written-off vehicle inspection required.';
-			return self::result( true, $flags, $reasons, 'n/a', true );
-		}
+		// EVERY car in the 2008-2010 band sits below every state's recording
+		// threshold (QLD cy-16, NSW/WA cy-15, VIC cy-14), so a clean WOVR reading
+		// proves nothing here. That is not a defect of the band — it is why PPSR
+		// is mandatory on it rather than advisable.
+		$flags[]   = 'history_unverified';
+		$flags[]   = 'ppsr_mandatory';
+		$info      = self::none_informative_floor( $state, $cy );
+		$reasons[] = ( null !== $info )
+			? sprintf( '%s only recorded total losses on vehicles newer than %d, so a %d car could be a genuine write-off that was never notifiable. PPSR check is mandatory, not optional.', $state, $info, $year )
+			: 'No recording threshold on file for this state, so the clean WOVR reading cannot be relied on. PPSR check is mandatory.';
 
-		// SA, NT, ACT, TAS are not covered by the brief. Unknown, not eligible,
-		// and not rejected either — say so rather than pick one.
-		$flags[]   = 'state_rule_unknown';
-		$reasons[] = sprintf( 'No published rule on file for %s repairable write-offs. Not screened.', $state ? $state : 'this state' );
-		return self::result( null, $flags, $reasons, 'n/a' );
+		return self::result( true, $flags, $reasons, 'n/a' );
 	}
 
 	/* ---------------------------------------------------------------
@@ -324,6 +338,68 @@ class IC_Salvage_Books {
 			'duty_basis'   => $duty,
 			'reasons'      => array( 'kenya' => $k['reasons'], 'uganda' => $u['reasons'], 'au_rental' => $a['reasons'] ),
 		);
+	}
+
+	/**
+	 * Build the lot array from a stored row (or any object/array with the same
+	 * field names).
+	 *
+	 * There is ONE mapping and it lives here. The import writes the book columns
+	 * and the board recomputes them on read; if those two used separate mappings
+	 * they would drift, and the drift would show as a lot that filters into a
+	 * book but displays out of it.
+	 *
+	 * @param object|array $row
+	 */
+	public static function from_row( $row ) {
+		$r   = (array) $row;
+		$get = static function ( $k ) use ( $r ) {
+			return ( array_key_exists( $k, $r ) && '' !== $r[ $k ] ) ? $r[ $k ] : null;
+		};
+		return array(
+			'source'           => $get( 'source' ),
+			'stock'            => $get( 'stock' ),
+			'year'             => null === $get( 'year' ) ? null : (int) $get( 'year' ),
+			'make'             => $get( 'make' ),
+			'model'            => $get( 'model' ),
+			'wovr'             => $get( 'wovr' ),
+			'state'            => $get( 'state' ),
+			'sale_date'        => $get( 'sale_datetime' ),
+			'primary_damage'   => $get( 'primary_damage' ),
+			'secondary_damage' => $get( 'secondary_damage' ),
+		);
+	}
+
+	/**
+	 * The calendar year every band is measured against.
+	 *
+	 * Read from the site's timezone, never from UTC. On 1 January a UTC clock is
+	 * still in the previous year for ten hours of the Australian day, and every
+	 * band would be off by one for exactly as long.
+	 */
+	public static function calendar_year() {
+		if ( function_exists( 'wp_timezone' ) ) {
+			return (int) ( new DateTimeImmutable( 'now', wp_timezone() ) )->format( 'Y' );
+		}
+		return (int) gmdate( 'Y' );
+	}
+
+	/** Human label for a book key. */
+	public static function label( $book ) {
+		$map = array(
+			'kenya'  => 'Kenya',
+			'uganda' => 'Uganda',
+			'rental' => 'Imani Car Rentals',
+		);
+		return isset( $map[ $book ] ) ? $map[ $book ] : $book;
+	}
+
+	/** The band a book covers in a given year, as a display string. */
+	public static function band_label( $book, $cy ) {
+		if ( 'kenya' === $book )  { return self::kenya_floor( $cy ) . '+'; }
+		if ( 'uganda' === $book ) { return self::uganda_floor( $cy ) . '–' . self::uganda_ceiling( $cy ); }
+		if ( 'rental' === $book ) { return self::rental_floor( $cy ) . '–' . self::rental_ceiling( $cy ); }
+		return '';
 	}
 
 	private static function damage_text( array $lot ) {

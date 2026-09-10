@@ -143,3 +143,89 @@ ic_is( IC_Salvage_Normalise::make_for_model( 'LandCruiser' ), 'Toyota', 'LandCru
 ic_is( IC_Salvage_Normalise::make_for_model( 'Ranger' ), 'Ford', 'Ranger' );
 ic_is( IC_Salvage_Normalise::make_for_model( 'Patrol' ), null, 'an unmapped model gets no invented make' );
 ic_is( IC_Salvage_Normalise::make_for_model( '' ), null, 'blank model' );
+
+/* ============================================================
+   THE THREE DESTINATION BOOKS, AS WRITTEN BY AN IMPORT
+
+   books.php can be perfectly correct and still be dead code. These
+   assertions exist because it WAS: the class was written, tested and
+   never called by anything, so the board filtered on a single Kenya
+   flag while three buyers' bands sat unused in a file.
+
+   The context here is pinned to 2026 so the bands are the ones Rop
+   set on 10 Sep 2026; the formulas themselves are proved to move in
+   test_books.php.
+   ============================================================ */
+
+$ctx26 = IC_Salvage_Normalise::context( '2026-09-07', 2026 );
+
+ic_test( 'import: a normalised row carries all three book columns and the year they were computed for' );
+$r = IC_Salvage_Normalise::from_iaa_scrape(
+	array( 'RAV4', '2021', 'RAV4 GXL', '90000201', 'Front', 'Repairable Write-Off', '93364', 'Y', 'Y', 'Y', 'SOUTH KEMPSEY, NSW', 'YES', '' ),
+	$ctx26
+);
+foreach ( array( 'book_kenya', 'book_uganda', 'book_rental', 'book_flags', 'book_cy' ) as $k ) {
+	ic_ok( array_key_exists( $k, $r ), 'record carries ' . $k );
+}
+ic_is( $r['book_cy'], 2026, 'book_cy records the year the bands were measured against' );
+
+ic_test( 'import: a 2021 repairable goes to the Kenya book and to no other' );
+ic_is( $r['book_kenya'], true, 'Kenya' );
+ic_is( $r['book_uganda'], false, 'not Uganda' );
+ic_is( $r['book_rental'], false, 'not rental' );
+
+ic_test( 'import: a 2015 lot goes to Uganda, and carries the levy that decides the price' );
+$u = IC_Salvage_Normalise::from_iaa_scrape(
+	array( 'Prado', '2015', 'Prado GXL', '90000202', 'Front', 'Repairable Write-Off', '180000', 'Y', 'Y', 'Y', 'Laverton North, VIC', 'NO', '' ),
+	$ctx26
+);
+ic_is( $u['book_uganda'], true, 'Uganda' );
+ic_is( $u['book_kenya'], false, 'not Kenya' );
+ic_is( $u['book_rental'], false, 'not rental' );
+ic_ok( in_array( 'uganda_levy_50pct', $u['book_flags'], true ), '50% URA levy is on the row, not buried in a reason string' );
+
+ic_test( 'import: a 2009 clean-title lot goes to the rental book, flagged unverifiable' );
+$a = IC_Salvage_Normalise::from_iaa_scrape(
+	array( 'Hilux', '2009', 'Hilux SR', '90000203', 'Front', 'No WOVR Record', '260000', 'Y', 'Y', 'Y', 'Laverton North, VIC', 'NO', '' ),
+	$ctx26
+);
+ic_is( $a['book_rental'], true, 'rental' );
+ic_is( $a['book_uganda'], false, 'not Uganda' );
+ic_is( $a['book_kenya'], false, 'not Kenya' );
+ic_ok( in_array( 'ppsr_mandatory', $a['book_flags'], true ), 'PPSR is mandatory on this band and the row says so' );
+
+ic_test( 'import: a 2009 REPAIRABLE is NOT in the rental book — the band takes WOVR N/A only' );
+$rep = IC_Salvage_Normalise::from_iaa_scrape(
+	array( 'Hilux', '2009', 'Hilux SR', '90000204', 'Front', 'Repairable Write-Off', '260000', 'Y', 'Y', 'Y', 'Laverton North, VIC', 'NO', '' ),
+	$ctx26
+);
+ic_is( $rep['book_rental'], false, 'rejected' );
+ic_is( $rep['book_uganda'], false, 'and it is below the Uganda floor, so it has no buyer at all' );
+ic_is( $rep['book_kenya'], false, 'nor Kenya' );
+
+ic_test( 'import: no imported row is ever in two books' );
+foreach ( range( 2005, 2027 ) as $y ) {
+	foreach ( array( 'No WOVR Record', 'Repairable Write-Off', 'Statutory Write-Off' ) as $w ) {
+		$row = IC_Salvage_Normalise::from_iaa_scrape(
+			array( 'RAV4', (string) $y, 'RAV4 GXL', '9000' . $y, 'Front', $w, '100000', 'Y', 'Y', 'Y', 'Laverton North, VIC', 'NO', '' ),
+			$ctx26
+		);
+		$n = 0;
+		foreach ( array( 'book_kenya', 'book_uganda', 'book_rental' ) as $k ) {
+			if ( true === $row[ $k ] ) { $n++; }
+		}
+		ic_ok( $n <= 1, sprintf( '%d %s is in at most one book', $y, $w ) );
+	}
+}
+
+ic_test( 'import: Pickles publishes no damage, so its books are UNKNOWN, not "no"' );
+// Pickles feeds carry no damage codes at all. Water cannot be ruled out, so
+// Kenya and Uganda are undecided. Rendering that as "not eligible" would hide
+// every Pickles lot from a buyer who could actually take it.
+$p = IC_Salvage_Normalise::from_pickles(
+	array( 'RAV4', '2021', 'GXL', '90000205', 'Repairable Write-Off', '80,000 km', 'Tullamarine, VIC', '-' ),
+	$ctx26
+);
+ic_is( $p['book_kenya'], null, 'Kenya is unknown' );
+ic_is( $p['book_uganda'], false, 'Uganda is a definite no — 2021 is above its ceiling, and that needs no damage data' );
+ic_is( $p['book_rental'], false, 'rental is a definite no — 2021 is outside the band' );

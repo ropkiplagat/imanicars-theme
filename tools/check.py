@@ -229,9 +229,62 @@ gate("lots absent from a new scan are reported, not removed", HARD,
 gate("derived Kenya flags are reconciled against the source column", HARD,
      "collect_anomalies" in imp and "kebs_eligible" in imp)
 
+# 7b — the three destination books are actually WIRED, not merely correct
+#
+# books.php passed every one of its own tests for days while nothing called it.
+# A rule engine that no code path reaches is not a safeguard, it is a document.
+# These gates assert the call sites exist, in both directions: computed on the
+# way in, recomputed on the way out.
+print("\nDestination books")
+books = read("inc/salvage/books.php") or ""
+norm = read("inc/salvage/normalise.php") or ""
+page_src = read("page-insurance.php") or ""
+sch = read("inc/salvage/schema.php") or ""
+
+gate("the import computes all three books", HARD,
+     "IC_Salvage_Books::assess" in norm
+     and all(f"'{k}'" in norm for k in ("book_kenya", "book_uganda", "book_rental")))
+gate("the three books are persisted and indexed", HARD,
+     all(c in sch for c in ("book_kenya", "book_uganda", "book_rental", "book_cy"))
+     and "idx_book_kenya" in sch)
+gate("the board RECOMPUTES books rather than trusting the stored index", HARD,
+     "IC_Salvage_Books::assess" in page_src
+     and "IC_Salvage_Books::calendar_year" in page_src)
+gate("the export recomputes them too, so the file matches the screen", HARD,
+     "IC_Salvage_Books::assess" in ajax)
+gate("a stale book index is surfaced, not silently trusted", HARD,
+     "book_cy" in page_src and "book_index_stale" in page_src)
+gate("the books are filterable and every book filter defaults OFF", HARD,
+     "book_kenya" in repo
+     and "'book'" in (read("inc/salvage/view.php") or "")
+     and 'name="book[]"' in page_src
+     and "checked( in_array( $bk, $filters['book'], true ) )" in page_src)
+# The whole reason Rop chose these bands: three buyers must never bid against
+# each other. Disjointness is proved in the test suite; this asserts the suite
+# still contains that proof.
+gate("disjointness is proved by a test, not asserted in a comment", HARD,
+     "no lot is eligible in two books at once"
+     in (read("tests/salvage/test_books.php") or ""))
+gate("every band edge is a formula, never a literal year", HARD,
+     re.search(r"return \(int\) \$cy - \d+;", books) is not None
+     and not re.search(r"(?:floor|ceiling)\w*\([^)]*\)\s*{\s*return\s+20\d\d", books))
+gate("the rental book takes WOVR N/A only", HARD,
+     "self::NONE !== $wovr" in books and "takes WOVR N/A only" in books)
+est = read("inc/salvage/estimate.php") or ""
+est_t = read("tests/salvage/test_estimate.php") or ""
+# A range estimate must be measured from the end the price missed. Averaging the
+# two ends produces a figure nobody wrote down and then reports a variance
+# against it — inventing a price, which is the one thing this board must not do.
+gate("estimate vs actual never averages a range into a midpoint", HARD,
+     re.search(r"(?:low.{0,40}high|high.{0,40}low)[^;\n]*\)\s*/\s*2", est) is None
+     and "/ 2" not in est
+     and "8000-10000" in est_t)
+gate("an unreadable estimate yields null, never zero", HARD,
+     "'unparsed'" in est and "never 0" in est_t)
+
 # 8 — the board UI
 print("\nBoard UI")
-page = read("page-insurance.php") or ""
+page = page_src
 css = read("assets/css/salvage.css") or ""
 js = read("assets/js/salvage.js") or ""
 
@@ -251,7 +304,24 @@ gate("money is tabular and right-aligned", HARD,
      "tabular-nums" in css and ".sb-num" in css)
 gate("the four export actions are present", HARD,
      all(k in page for k in ("ic_salvage_export", "data-sb-copy",
-                             "data-sb-print", "sb-email")))
+                             "data-sb-print", "data-sb-email")))
+# Rop reported "email doesn't send the filtered results". It was a mailto: link
+# carrying a 20-row text summary and no attachment, labelled "Email". A control
+# that names an action must perform it.
+gate("Email sends from the SERVER, not via a mailto: link", HARD,
+     "mailto:" not in js
+     and "ic_salvage_email" in js
+     and "wp_ajax_ic_salvage_email" in ajax
+     and "wp_mail(" in ajax)
+gate("the emailed CSV is built by the same code as the downloaded one", HARD,
+     ajax.count("private static function build_csv") == 1
+     and ajax.count("self::build_csv(") == 2)
+gate("a failed send is reported as failed, with its reason", HARD,
+     "wp_mail_failed" in ajax
+     and re.search(r"if\s*\(\s*!\s*\$sent\s*\)", ajax) is not None)
+# The bug that made an unpriced Pickles lot read like an unpriced Manheim one.
+gate('"not found" and "no price recorded yet" are distinct in the export', HARD,
+     "no price recorded yet" in ajax and "csv_fee" in ajax)
 gate("the browser never computes a fee", HARD,
      "ic_salvage_quote" in js
      and not re.search(r"0\.1495|0\.15\s*\*|\*\s*0\.15", js))

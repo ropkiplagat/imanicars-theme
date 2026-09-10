@@ -16,6 +16,11 @@
  * 3. Observations are append-only and are NEVER deleted by an import. The price
  *    history is the point of the system; a lot that has sold is marked sold, not
  *    removed.
+ * 4. book_kenya / book_uganda / book_rental are a FILTER INDEX, not the truth.
+ *    Every book is a year band relative to the calendar year, so a value stored
+ *    in 2026 is wrong on 1 January 2027. book_cy records the year it was
+ *    computed for; the board recomputes on read and warns when the stored year
+ *    is behind. The columns exist so the three books can be filtered in SQL.
  *
  * @package imanicars
  */
@@ -24,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 class IC_Salvage_Schema {
 
-	const DB_VERSION = '1.0.0';
+	const DB_VERSION = '1.1.0';
 	const OPT_DB_VERSION = 'ic_salvage_db_version';
 
 	public static function lots_table() {
@@ -75,6 +80,11 @@ class IC_Salvage_Schema {
 			state VARCHAR(4) NULL,
 			kebs_eligible TINYINT(1) NULL,
 			kebs_reasons TEXT NULL,
+			book_kenya TINYINT(1) NULL,
+			book_uganda TINYINT(1) NULL,
+			book_rental TINYINT(1) NULL,
+			book_flags TEXT NULL,
+			book_cy SMALLINT UNSIGNED NULL,
 			flood_pvoc_reject TINYINT(1) NULL,
 			vic_statutory_epa TINYINT(1) NULL,
 			detail_url TEXT NULL,
@@ -98,7 +108,10 @@ class IC_Salvage_Schema {
 			KEY idx_year (year),
 			KEY idx_state (state),
 			KEY idx_kebs (kebs_eligible),
-			KEY idx_source (source)
+			KEY idx_source (source),
+			KEY idx_book_kenya (book_kenya),
+			KEY idx_book_uganda (book_uganda),
+			KEY idx_book_rental (book_rental)
 		) {$charset};";
 
 		$sql_obs = "CREATE TABLE {$obs} (
@@ -133,6 +146,27 @@ class IC_Salvage_Schema {
 		if ( get_option( self::OPT_DB_VERSION ) !== self::DB_VERSION ) {
 			self::install();
 		}
+	}
+
+	/**
+	 * Does a column exist on the lots table?
+	 *
+	 * The board calls this before reading a column added in a later schema
+	 * version. maybe_upgrade() runs on admin_init, so a deploy followed by a
+	 * visit straight to /insurance would otherwise read a column that is not
+	 * there yet — and the page that exists to make absent facts visible would
+	 * fail by emitting PHP notices into the markup.
+	 */
+	public static function lots_column_exists( $column ) {
+		global $wpdb;
+		static $cache = array();
+		$column = preg_replace( '/[^a-z0-9_]/', '', strtolower( (string) $column ) );
+		if ( '' === $column ) { return false; }
+		if ( isset( $cache[ $column ] ) ) { return $cache[ $column ]; }
+		$table = self::lots_table();
+		$found = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM {$table} LIKE %s", $column ) ); // phpcs:ignore WordPress.DB
+		$cache[ $column ] = ( $found === $column );
+		return $cache[ $column ];
 	}
 
 	/** Do the tables actually exist? Used by the board to show a real error, not an empty grid. */

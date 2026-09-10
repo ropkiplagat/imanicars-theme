@@ -76,6 +76,11 @@ its absence from both robots.txt and the sitemap.
 | Duty is on CRSP | `fees.php`, board, CSV | Every cost is labelled "before duty" with the CRSP basis as adjacent text. |
 | Never invent a price | `fees.php` | Manheim returns NULL + the 403 reason. Never an estimate. |
 | No V8 Prado | `rules.php` | A row claiming a V8 or 4.5 Prado is flagged as a mis-scrape at import. |
+| Three books stay disjoint | `books.php` | Brute-forced over 24 years x 3 WOVR values in the suite. Two buyers can never bid against each other. |
+| Book bands are formulas | `books.php` | All six edges are `cy - n`, asserted across three calendar years. A gate rejects a literal year in a band function. |
+| Books are recomputed on read | board, CSV | The stored columns are a filter index only. A stale index is surfaced in an amber banner, never silently trusted. |
+| Estimates never invent a midpoint | `estimate.php` | A range is measured from the end that was missed. A gate greps for midpoint arithmetic. |
+| Email sends what is on screen | `ajax.php` | One `build_csv()` feeds both the download and the attachment. A failed send reports the reason; it never claims success. |
 | Never delete a sold lot | `repo.php`, `import.php` | The importer contains no DELETE and never writes a status. Status derives only from observations, so a re-import cannot resurrect a sold lot as Live. Lots absent from a new scan are *reported*, not removed. |
 
 ### Buyer fees
@@ -89,6 +94,96 @@ suite **and** as a static gate:
 
 At or below the $1,000 threshold the flat component is not published, so the
 quote is marked **partial** and says what is missing rather than assuming zero.
+
+---
+
+## The three destination books (10 Sep 2026)
+
+Three buyers, three **disjoint** year bands. Disjoint on purpose: an overlap
+means two of Rop's buyers bid against each other and inflate a price they both
+pay.
+
+| Book | Band in 2026 | Formula | Extra rule |
+|---|---|---|---|
+| Imani Car Rentals | 2008-2010 | `cy-18 .. cy-16` | **WOVR N/A only.** Repairable no longer qualifies. |
+| Uganda | 2011-2018 | `cy-15 .. cy-8` | 2018 is the only year in the band at 20% levy rather than 50%. |
+| Kenya | 2019+ | `cy-7 ..` | KEBS KS 1515. Water fails PVoC separately, at any age. |
+
+Every edge is a formula. `test_books.php` asserts all six across 2026, 2027 and
+2030, and asserts disjointness by brute force over 24 years x 3 WOVR values -
+because the property Rop chose these bands for is exactly the one a comment
+cannot guarantee.
+
+**2011 is contested and is admitted anyway.** URA guidance reads "under 15 years
+old from first registration", which excludes it; URA's own environmental levy
+band runs 9-15 years, which admits it. Rop assigned it to Uganda **by decision,
+not by resolution**. Every 2011 row carries `uganda_boundary_contested_2011` and
+the board prints "confirm with URA before committing". The flag survives the
+decision on purpose.
+
+**The 2008-2010 band cannot be history-checked.** It sits below every state's
+recording threshold (QLD `cy-16`, NSW/WA `cy-15`, VIC `cy-14`), so a clean WOVR
+reading proves nothing there. That is not a defect of the band - it is why every
+eligible row carries `history_unverified` **and** `ppsr_mandatory`, and why the
+board says PPSR is mandatory rather than advisable.
+
+### Why the books are stored *and* recomputed
+
+`book_kenya` / `book_uganda` / `book_rental` are a **filter index**, nothing
+more. They let the three checkboxes filter in SQL. But every band is relative to
+the calendar year, so a `1` written in 2026 is wrong on 1 January 2027.
+
+- `book_cy` records the year each row's flags were computed against.
+- The board and the CSV **recompute** on read, from `IC_Salvage_Books::assess()`,
+  using the Australian clock - never UTC, which is still in the previous year for
+  ten hours of the Australian 1 January.
+- When the stored index disagrees with the live rule, or `book_cy` is behind, the
+  board says so in an amber banner and states plainly that the badges are correct
+  and the *checkboxes* may not be.
+
+A gate asserts the call sites exist in both directions, because `books.php`
+passed all its own tests for days while **nothing called it** - the board was
+still filtering on a single Kenya flag. A rule engine no code path reaches is a
+document, not a safeguard.
+
+---
+
+## Estimate vs auction price
+
+`estimate.php` compares the pre-bid ceiling against the observed hammer.
+
+- A **range** is measured from the end the price missed. A midpoint is never
+  computed - it would be a figure nobody wrote down, and reporting a variance
+  against it is inventing a price. A gate greps for midpoint arithmetic.
+- An unreadable cell ("TBC", "ask Wilson") yields **null and the original text**,
+  so the board can show what it could not read. Never zero.
+- A variance needs **both** sides. One known side is not a small variance, it is
+  no variance.
+- A zero estimate is a real estimate; the percentage is `null`, not `INF`.
+
+The finding this exists to surface, from the 10 Sep Pickles lane: **a statutory
+write-off prices as parts, not as a discounted car.** Two statutory Wildtraks sat
+$2,400 apart across four model years and 143,000 km, while the repairable of the
+same model made 4-6x either. An estimate built down from retail misses a
+statutory lot by more than 60%.
+
+---
+
+## Email
+
+The Email control used to be a link that opened the local mail client with a
+20-row text summary pasted into the body and no attachment. It was labelled
+"Email" and it sent nothing. Rop reported it as "email doesn't send the filtered
+results", and he was right.
+
+It now posts to `ic_salvage_email`, which builds the **same CSV the Export button
+produces** - one `build_csv()`, not two - and attaches it. The filters travel as
+the board's own query string so the file matches the screen exactly.
+
+If `wp_mail` fails it reports the reason from `wp_mail_failed`. It never reports
+success on a send that did not happen. **SMTP is still not configured on this
+host**, so expect it to fail until that is done; the failure message says so and
+points at Export as the fallback.
 
 ---
 

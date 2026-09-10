@@ -22,6 +22,7 @@ $GLOBALS['ic_t'] = array(
 
 $root = dirname( dirname( __DIR__ ) );
 require_once $root . '/inc/salvage/fees.php';
+require_once $root . '/inc/salvage/estimate.php';
 require_once $root . '/inc/salvage/rules.php';
 require_once $root . '/inc/salvage/saledate.php';
 require_once $root . '/inc/salvage/normalise.php';

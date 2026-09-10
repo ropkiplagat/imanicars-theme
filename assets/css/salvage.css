@@ -342,3 +342,88 @@
   .sb-row--past { opacity: 1; color: #666; }
   a[href]::after { content: ""; }
 }
+
+/* ============================================================
+   DESTINATION BOOKS, ESTIMATE-VS-ACTUAL, EMAIL
+   ============================================================ */
+
+.sb-alert--warn { background: var(--sb-warn-bg); border: 1px solid var(--sb-warn); color: var(--sb-warn); }
+.sb-alert--warn strong { color: var(--sb-warn); }
+
+/* ---------- Book badges ----------
+   All three books share one chip. Which buyer a lot belongs to is
+   carried by the WORD, not by a colour — green, amber and red mean
+   passed, deadline and rejected on this page, and a fourth colour
+   code competing with them would weaken all of it. The rule on the
+   left says only "this lot has a buyer". */
+.sb-book {
+  display: inline-block; font-size: 12px; font-weight: 700;
+  padding: 2px 6px 2px 7px; border-radius: 3px; white-space: nowrap;
+  background: #eeedea; color: var(--sb-ink);
+  border-left: 3px solid var(--sb-ink-2);
+  margin: 0 var(--sb-1) var(--sb-1) 0;
+}
+
+.sb-band {
+  font-family: var(--sb-mono); font-size: 11px; font-weight: 600;
+  color: var(--sb-ink-2); background: #f0efec;
+  padding: 1px 4px; border-radius: 3px; margin-left: var(--sb-1);
+}
+
+.sb-field--books { flex-direction: column; align-items: stretch; }
+.sb-field--books .sb-field__legend { margin-bottom: var(--sb-1); }
+.sb-field__foot {
+  margin: var(--sb-2) 0 0; font-size: 12px; color: var(--sb-ink-3);
+  line-height: 1.4; max-width: 46ch;
+}
+
+.sb-counts__band { font-family: var(--sb-mono); font-size: 11px; color: var(--sb-ink-3); }
+.sb-counts__foot {
+  margin: var(--sb-2) 0 0; font-size: 12px; color: var(--sb-ink-3);
+  line-height: 1.4; max-width: 76ch;
+}
+
+/* ---------- Estimate vs actual ----------
+   A variance is a comparison, not a verdict: "over" is only bad if we
+   were bidding, and Rop is watching. So it is emphasised without being
+   coloured as a failure. */
+.sb-vs {
+  margin-top: var(--sb-2); padding-top: var(--sb-2);
+  border-top: 1px solid var(--sb-line);
+  font-size: 12px;
+}
+.sb-vs__row { display: flex; justify-content: space-between; gap: var(--sb-2); align-items: baseline; }
+.sb-vs__label { color: var(--sb-ink-3); }
+.sb-vs__est,
+.sb-vs__delta { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--sb-ink); white-space: nowrap; }
+.sb-vs__row--over  .sb-vs__delta { color: var(--sb-warn); }
+.sb-vs__row--under .sb-vs__delta { color: var(--sb-ok); }
+.sb-vs__row--on    .sb-vs__delta { color: var(--sb-ink-2); font-weight: 500; }
+
+/* ---------- Email ---------- */
+.sb-emailbox { margin: 0 0 var(--sb-4); }
+.sb-emailbox > summary { display: inline-block; cursor: pointer; list-style: none; }
+.sb-emailbox > summary::-webkit-details-marker { display: none; }
+.sb-emailbox__form {
+  margin-top: var(--sb-3); padding: var(--sb-4);
+  background: var(--sb-surface); border: 1px solid var(--sb-line);
+  border-radius: var(--sb-r);
+  display: flex; flex-wrap: wrap; gap: var(--sb-2); align-items: center;
+}
+.sb-emailbox__form label { font-size: 13px; color: var(--sb-ink-2); }
+.sb-emailbox__form input[type="email"] {
+  flex: 1 1 260px; min-height: 44px; padding: 0 var(--sb-3);
+  border: 1px solid var(--sb-line-2); border-radius: var(--sb-r);
+  font-size: 15px; background: #fff; color: var(--sb-ink);
+}
+.sb-emailbox__msg { flex: 1 0 100%; margin: 0; font-size: 13px; min-height: 1.4em; }
+.sb-emailbox__msg--ok  { color: var(--sb-ok); }
+.sb-emailbox__msg--bad { color: var(--sb-bad); }
+.sb-emailbox__foot {
+  flex: 1 0 100%; margin: 0; font-size: 12px; color: var(--sb-ink-3);
+  line-height: 1.4; max-width: 68ch;
+}
+
+@media print {
+  .sb-emailbox, .sb-field--books { display: none; }
+}

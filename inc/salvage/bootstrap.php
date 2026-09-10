@@ -10,6 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 define( 'IC_SALVAGE_DIR', __DIR__ );
 
 require_once IC_SALVAGE_DIR . '/fees.php';
+require_once IC_SALVAGE_DIR . '/estimate.php';
 require_once IC_SALVAGE_DIR . '/rules.php';
 require_once IC_SALVAGE_DIR . '/saledate.php';
 require_once IC_SALVAGE_DIR . '/normalise.php';
@@ -43,6 +44,9 @@ function ic_salvage_enqueue() {
 			'notFound'  => __( 'not found', 'imanicars' ),
 			'copied'    => __( 'Table copied to the clipboard', 'imanicars' ),
 			'copyFail'  => __( 'Could not copy — select the table and copy manually', 'imanicars' ),
+			'sending'   => __( 'Sending…', 'imanicars' ),
+			'sent'      => __( 'Sent', 'imanicars' ),
+			'sendFail'  => __( 'Not sent', 'imanicars' ),
 		),
 	) );
 }

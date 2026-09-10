@@ -19,37 +19,71 @@ class IC_Salvage_View {
 
 	/** Read and sanitise filters from the query string. */
 	public static function filters_from_request() {
-		$multi = function ( $key ) {
-			if ( empty( $_GET[ $key ] ) ) { return array(); }
-			$vals = (array) wp_unslash( $_GET[ $key ] );
+		return self::filters_from( $_GET ); // phpcs:ignore WordPress.Security.NonceVerification -- read-only filtering.
+	}
+
+	/**
+	 * Read filters from a query string, e.g. the board's own `location.search`
+	 * posted back by the Email control.
+	 *
+	 * The export and the email must filter identically or the file Rop sends is
+	 * not the board he was looking at. That means ONE parser, not two.
+	 *
+	 * @param string $qs A query string, with or without its leading "?".
+	 */
+	public static function filters_from_request_array( $qs ) {
+		$parsed = array();
+		parse_str( ltrim( (string) $qs, '?' ), $parsed );
+		return self::filters_from( $parsed );
+	}
+
+	/** @param array $src A $_GET-shaped array. */
+	private static function filters_from( $src ) {
+		$src = is_array( $src ) ? $src : array();
+
+		$multi = function ( $key ) use ( $src ) {
+			if ( empty( $src[ $key ] ) ) { return array(); }
+			$vals = (array) wp_unslash( $src[ $key ] );
+			// Only scalars. A nested array here would reach sanitize_text_field()
+			// as an array and come back as the string "Array".
+			$vals = array_filter( $vals, 'is_scalar' );
 			return array_values( array_filter( array_map( 'sanitize_text_field', $vals ), 'strlen' ) );
 		};
 
-		$f = array(
+		$scalar = function ( $key ) use ( $src ) {
+			return ( isset( $src[ $key ] ) && is_scalar( $src[ $key ] ) ) ? (string) $src[ $key ] : '';
+		};
+
+		return array(
 			'source'        => $multi( 'source' ),
 			'model'         => $multi( 'model' ),
 			'wovr'          => $multi( 'wovr' ),
 			'state'         => $multi( 'state' ),
-			'year_min'      => isset( $_GET['year_min'] ) && '' !== $_GET['year_min'] ? (int) $_GET['year_min'] : null,
-			'year_max'      => isset( $_GET['year_max'] ) && '' !== $_GET['year_max'] ? (int) $_GET['year_max'] : null,
-			'sale_from'     => isset( $_GET['sale_from'] ) ? self::date_or_null( $_GET['sale_from'] ) : null,
-			'sale_to'       => isset( $_GET['sale_to'] ) ? self::date_or_null( $_GET['sale_to'] ) : null,
+			'year_min'      => '' !== $scalar( 'year_min' ) ? (int) $scalar( 'year_min' ) : null,
+			'year_max'      => '' !== $scalar( 'year_max' ) ? (int) $scalar( 'year_max' ) : null,
+			'sale_from'     => self::date_or_null( $scalar( 'sale_from' ) ),
+			'sale_to'       => self::date_or_null( $scalar( 'sale_to' ) ),
 			// Kenya eligibility is a checkbox and it DEFAULTS OFF.
-			'kenya_only'    => ! empty( $_GET['kenya_only'] ),
-			'exclude_flood' => ! empty( $_GET['exclude_flood'] ),
-			'search'        => isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '',
+			'kenya_only'    => ! empty( $src['kenya_only'] ),
+			// The three destination books. Also checkboxes, also default off —
+			// the board's job is to show every price, and a book filter that
+			// defaulted on would hide the comparison stock the whole exercise
+			// depends on. Only the three known keys survive.
+			'book'          => array_values( array_intersect( $multi( 'book' ), array( 'kenya', 'uganda', 'rental' ) ) ),
+			'exclude_flood' => ! empty( $src['exclude_flood'] ),
+			'search'        => '' !== $scalar( 'q' ) ? sanitize_text_field( wp_unslash( $scalar( 'q' ) ) ) : '',
 		);
-		return $f;
 	}
 
 	private static function date_or_null( $v ) {
-		$v = sanitize_text_field( wp_unslash( $v ) );
+		if ( ! is_scalar( $v ) || '' === (string) $v ) { return null; }
+		$v = sanitize_text_field( wp_unslash( (string) $v ) );
 		return preg_match( '/^\d{4}-\d{2}-\d{2}$/', $v ) ? $v : null;
 	}
 
 	/** Is any filter active? Used to choose the right empty state. */
 	public static function has_active_filters( array $f ) {
-		foreach ( array( 'source', 'model', 'wovr', 'state' ) as $k ) {
+		foreach ( array( 'source', 'model', 'wovr', 'state', 'book' ) as $k ) {
 			if ( ! empty( $f[ $k ] ) ) { return true; }
 		}
 		foreach ( array( 'year_min', 'year_max', 'sale_from', 'sale_to' ) as $k ) {

@@ -205,41 +205,49 @@
     printBtn.addEventListener('click', function () { window.print(); });
   }
 
-  var emailLink = document.getElementById('sb-email');
-  if (emailLink) {
-    emailLink.addEventListener('click', function (e) {
+  /* ----------------------------------------------------------
+     Email the filtered results
+
+     This posts to the server, which builds the SAME CSV the Export
+     button produces and attaches it.
+
+     It used to be a link that opened the local mail client with a
+     20-row text summary pasted into the body and no attachment —
+     labelled "Email", sending nothing. The rule that broke is the one
+     this whole board is built on: a control says exactly what it does,
+     and a thing that did not happen is never reported as if it had.
+
+     check.py gates on the absence of that link scheme anywhere in this
+     file, so it cannot come back.
+     ---------------------------------------------------------- */
+  var emailForm = document.querySelector('[data-sb-email]');
+  if (emailForm) {
+    emailForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      var table = document.getElementById('sb-board');
-      var rows  = table ? table.querySelectorAll('tbody tr') : [];
-      var lede  = document.querySelector('.sb-lede__num');
+      var msg = emailForm.querySelector('[data-sb-email-msg]');
+      var btn = emailForm.querySelector('button[type="submit"]');
+      var to  = (emailForm.querySelector('[name="to"]') || {}).value || '';
 
-      var body = [];
-      body.push('Imani salvage board — ' + new Date().toISOString().slice(0, 10));
-      body.push('');
-      if (lede) { body.push(lede.textContent.trim() + ' lots sell in the next 48 hours.'); }
-      body.push(rows.length + ' lots in the current view.');
-      body.push('');
+      msg.className = 'sb-emailbox__msg';
+      msg.textContent = S.sending || 'Sending…';
+      if (btn) { btn.disabled = true; }
 
-      var limit = Math.min(rows.length, 20);
-      for (var i = 0; i < limit; i++) {
-        var tds = rows[i].querySelectorAll('td');
-        if (tds.length < 5) { continue; }
-        var sale    = tds[0].textContent.replace(/\s+/g, ' ').trim();
-        var house   = tds[1].textContent.replace(/\s+/g, ' ').trim();
-        var stock   = tds[2].textContent.replace(/\s+/g, ' ').trim();
-        var vehicle = tds[3].textContent.replace(/\s+/g, ' ').trim();
-        body.push('- ' + vehicle + ' | ' + house + ' ' + stock + ' | ' + sale);
-      }
-      if (rows.length > limit) {
-        body.push('... and ' + (rows.length - limit) + ' more. Use Export to Excel for the full table.');
-      }
-      body.push('');
-      body.push('All costs are BEFORE Kenyan duty. Duty is assessed on KRA CRSP, not on the price paid.');
-      body.push('Manheim buyer fees are not published and show as "not found".');
-
-      var href = 'mailto:?subject=' + encodeURIComponent('Imani salvage board — ' + new Date().toISOString().slice(0, 10)) +
-                 '&body=' + encodeURIComponent(body.join('\n'));
-      window.location.href = href;
+      // The board's own query string, so the server filters to exactly
+      // what is on screen. Rebuilding the filters here would be a second
+      // implementation, and the two would drift.
+      post('ic_salvage_email', { to: to, filters: window.location.search })
+        .then(function (res) {
+          var ok = res && res.success;
+          msg.className = 'sb-emailbox__msg sb-emailbox__msg--' + (ok ? 'ok' : 'bad');
+          msg.textContent = (res && res.data && res.data.message)
+            ? res.data.message
+            : (ok ? (S.sent || 'Sent') : (S.sendFail || 'Not sent'));
+        })
+        .catch(function () {
+          msg.className = 'sb-emailbox__msg sb-emailbox__msg--bad';
+          msg.textContent = S.sendFail || 'Not sent — the request did not reach the server.';
+        })
+        .finally(function () { if (btn) { btn.disabled = false; } });
     });
   }
 }());
