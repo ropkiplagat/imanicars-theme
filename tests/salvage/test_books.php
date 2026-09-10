@@ -222,3 +222,28 @@ foreach ( $lane as $l ) {
 	if ( in_array( 'vic_epa_licence', $a['flags'], true ) ) { $epa++; }
 }
 ic_is( $epa, 3, 'three of the four need a Victorian EPA licence to bid' );
+
+ic_test( 'WOVR: "Inspected Write-Off" is IAA\'s spelling and must code INSP' );
+// Found live in the 11 Sep 2026 IAA sale: 11 lots published "Inspected
+// Write-Off". The coder recognised only Pickles' "Inspection Passed Repairable
+// Write-Off", so all eleven returned null and rendered as "not published" —
+// an inspection already done, shown as no information at all.
+ic_is( IC_Salvage_Books::wovr_code( 'Inspected Write-Off' ), 'INSP', 'IAA wording' );
+ic_is( IC_Salvage_Books::wovr_code( 'INSPECTED WRITE-OFF' ), 'INSP', 'case varies' );
+ic_is( IC_Salvage_Books::wovr_code( 'Inspection Passed Repairable Write-Off' ), 'INSP', 'Pickles wording still codes the same' );
+
+ic_test( 'WOVR: "not inspected" is the ABSENCE of an inspection, never an INSP' );
+// Both strings contain "inspected". Reading "Not Inspected" as a passed
+// inspection would turn a car nobody has looked at into one that is cleared.
+ic_is( IC_Salvage_Books::wovr_code( 'Not Inspected' ), null, 'not inspected is unknown' );
+ic_is( IC_Salvage_Books::wovr_code( 'NOT INSPECTED WRITE-OFF' ), null, 'even with Write-Off attached' );
+ic_is( IC_Salvage_Books::wovr_code( 'Uninspected' ), null, 'and the one-word form' );
+
+ic_test( 'the rental book rejects an Inspected Write-Off inside its own year band' );
+// 5 of the 131 lots in the 2008-2010 band on 11 Sep were Inspected Write-Offs
+// and 1 was statutory. The band is 131; the BOOK is 125. Those are different
+// numbers and the difference is the WOVR rule.
+$insp = array( 'year' => 2009, 'wovr' => 'Inspected Write-Off', 'state' => 'NSW' );
+ic_is( IC_Salvage_Books::au_rental( $insp, 2026 )['ok'], false, 'on the register, so out of the rental book' );
+$r = IC_Salvage_Books::au_rental( $insp, 2026 );
+ic_ok( false !== stripos( implode( ' ', $r['reasons'] ), 'INSP' ), 'and the reason names the code it read' );

@@ -46,7 +46,16 @@ class IC_Salvage_Books {
 		$s = strtolower( trim( (string) $published ) );
 		if ( '' === $s || '-' === $s || '?' === $s ) { return null; }
 
+		// "Not inspected" is the ABSENCE of an inspection and must never be read
+		// as one. Tested before the positive forms because both contain the word.
+		if ( false !== strpos( $s, 'not inspected' ) || false !== strpos( $s, 'uninspected' ) ) { return null; }
+
+		// Two spellings of the same thing. "Inspection Passed Repairable
+		// Write-Off" is Pickles' wording; "Inspected Write-Off" is IAA's, found
+		// in the live 11 Sep 2026 sale on 11 lots — until then this coder
+		// returned null for every one of them and they read as "not published".
 		if ( false !== strpos( $s, 'inspection passed' ) ) { return self::INSP; }
+		if ( false !== strpos( $s, 'inspected' ) )         { return self::INSP; }
 		if ( false !== strpos( $s, 'statutory' ) )         { return self::STAT; }
 		if ( false !== strpos( $s, 'repairable' ) )        { return self::REP; }
 		if ( false !== strpos( $s, 'no wovr' ) || false !== strpos( $s, 'wovr n/a' )
