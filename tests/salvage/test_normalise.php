@@ -229,3 +229,35 @@ $p = IC_Salvage_Normalise::from_pickles(
 ic_is( $p['book_kenya'], null, 'Kenya is unknown' );
 ic_is( $p['book_uganda'], false, 'Uganda is a definite no — 2021 is above its ceiling, and that needs no damage data' );
 ic_is( $p['book_rental'], false, 'rental is a definite no — 2021 is outside the band' );
+
+ic_test( 'IAA feed: an optional 14th column carries the sale date' );
+// IAA's workbook feed publishes no sale date, but the lot pages do. Column 13 was
+// added 11 Sep 2026 so captured sale times reach the board and the sale-date
+// filter works on IAA lots. Renumbering the existing columns would have silently
+// shifted every field in every workbook captured before that date.
+$with = IC_Salvage_Normalise::from_iaa_scrape(
+	array( 'RAV4', '2021', 'RAV4 GXL', '90000301', 'Front', 'Repairable Write-Off', '93364', 'Y', 'Y', 'Y',
+		'SOUTH KEMPSEY, NSW', 'YES', '', 'Mon 14/09 10:00AM' ),
+	$ctx26
+);
+ic_is( $with['sale_datetime'], '2026-09-14 10:00:00', 'the sale time is parsed and attached' );
+ic_is( $with['sale_time_note'], null, 'and no "IAA publishes no date" note is left behind' );
+
+ic_test( 'IAA feed: a 13-column row still imports, and still says WHY it has no time' );
+// Backwards compatibility is the point of making the column optional.
+$without = IC_Salvage_Normalise::from_iaa_scrape(
+	array( 'RAV4', '2021', 'RAV4 GXL', '90000302', 'Front', 'Repairable Write-Off', '93364', 'Y', 'Y', 'Y',
+		'SOUTH KEMPSEY, NSW', 'YES', '' ),
+	$ctx26
+);
+ic_is( $without['sale_datetime'], null, 'no date' );
+ic_ok( false !== stripos( (string) $without['sale_time_note'], 'does not publish' ), 'and the reason is recorded, not left blank' );
+
+ic_test( 'IAA feed: a blank 14th column is the same as no column at all' );
+$blank = IC_Salvage_Normalise::from_iaa_scrape(
+	array( 'RAV4', '2021', 'RAV4 GXL', '90000303', 'Front', 'Repairable Write-Off', '93364', 'Y', 'Y', 'Y',
+		'SOUTH KEMPSEY, NSW', 'YES', '', '' ),
+	$ctx26
+);
+ic_is( $blank['sale_datetime'], null, 'empty string does not become a date' );
+ic_ok( false !== stripos( (string) $blank['sale_time_note'], 'does not publish' ), 'and falls back to the honest note' );

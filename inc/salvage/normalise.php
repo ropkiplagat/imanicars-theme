@@ -198,9 +198,22 @@ class IC_Salvage_Normalise {
 		$r['detail_url']   = self::s( self::col( $row, 12 ) );
 		$r['make']         = self::make_for_model( $r['model'] );
 
-		// IAA publishes no sale date in this feed. Left null on purpose: a blank
-		// "sells tomorrow" must read as unknown, not as "no".
-		$r['sale_time_note'] = 'IAA does not publish a sale date in this feed — sale timing is unknown for this lot.';
+		// Column 13 is OPTIONAL and carries a sale date when the capture could get
+		// one — the lot pages publish it even though the workbook feed does not.
+		// Added 11 Sep 2026 so the board's sale-date filter works on IAA lots;
+		// without it every IAA row is undated and cannot be filtered to a sale.
+		//
+		// Optional on purpose: a 13-column feed is still valid and still imports.
+		// The alternative was renumbering the columns, which would silently shift
+		// every field in every workbook captured before today.
+		$when = self::col( $row, 13 );
+		if ( null !== self::s( $when ) ) {
+			$r = self::attach_sale_time( $r, $when, $ctx );
+		} else {
+			// Left null on purpose: a blank "sells tomorrow" must read as unknown,
+			// not as "no".
+			$r['sale_time_note'] = 'IAA does not publish a sale date in this feed — sale timing is unknown for this lot.';
+		}
 
 		return self::apply_rules( $r, $ctx['calendar_year'] );
 	}
