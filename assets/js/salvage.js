@@ -251,3 +251,67 @@
     });
   }
 }());
+
+  /* ----------------------------------------------------------
+     Delete the filtered view
+
+     Two steps on purpose. "Check what would go" reports the counts
+     and only then reveals the destructive button. Lots carrying
+     recorded prices are kept unless the override is ticked, because
+     those prices are the comparison a future bid is judged against.
+     ---------------------------------------------------------- */
+  var delForm = document.querySelector('[data-sb-delete]');
+  if (delForm) {
+    var delMsg = delForm.querySelector('[data-sb-delete-msg]');
+    var delGo  = delForm.querySelector('[data-sb-delete-go]');
+    var delObs = delForm.querySelector('[data-sb-delete-obs]');
+
+    function delSay(text, bad) {
+      delMsg.className = 'sb-dangerbox__msg' + (bad ? ' sb-dangerbox__msg--bad' : '');
+      delMsg.textContent = text;
+    }
+
+    // Re-checking is required after changing the override, so the count
+    // on screen always matches what the button will actually do.
+    if (delObs) {
+      delObs.addEventListener('change', function () {
+        delGo.hidden = true;
+        delSay('Override changed — check again before deleting.');
+      });
+    }
+
+    delForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      delGo.hidden = true;
+      delSay(S.checking || 'Checking…');
+      post('ic_salvage_delete', {
+        filters: window.location.search,
+        include_observed: delObs && delObs.checked ? 1 : 0
+      }).then(function (res) {
+        if (!res || !res.success) {
+          delSay((res && res.data && res.data.message) || (S.failed || 'Failed'), true);
+          return;
+        }
+        delSay(res.data.message);
+        delGo.hidden = false;
+      }).catch(function () { delSay(S.failed || 'Failed', true); });
+    });
+
+    delGo.addEventListener('click', function () {
+      delGo.disabled = true;
+      delSay(S.deleting || 'Deleting…');
+      post('ic_salvage_delete', {
+        filters: window.location.search,
+        include_observed: delObs && delObs.checked ? 1 : 0,
+        confirm: 1
+      }).then(function (res) {
+        if (!res || !res.success) {
+          delSay((res && res.data && res.data.message) || (S.failed || 'Failed'), true);
+          delGo.disabled = false;
+          return;
+        }
+        delSay(res.data.message + ' ' + (S.reloading || 'Reloading…'));
+        setTimeout(function () { window.location.reload(); }, 1500);
+      }).catch(function () { delSay(S.failed || 'Failed', true); delGo.disabled = false; });
+    });
+  }

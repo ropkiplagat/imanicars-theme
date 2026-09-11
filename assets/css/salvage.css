@@ -427,3 +427,22 @@
 @media print {
   .sb-emailbox, .sb-field--books { display: none; }
 }
+
+/* ---------- Delete the filtered view ----------
+   Styled as a destructive action and kept visually apart from the
+   export controls. It is the one thing on this page that cannot be
+   undone, so it does not look like the buttons next to it. */
+.sb-btn--danger{background:var(--sb-bad);border-color:var(--sb-bad);color:#fff}
+.sb-btn--danger:hover{background:#8a1b1b}
+.sb-dangerbox{margin:0 0 var(--sb-4)}
+.sb-dangerbox > summary{display:inline-block;cursor:pointer;list-style:none}
+.sb-dangerbox > summary::-webkit-details-marker{display:none}
+.sb-dangerbox__form{
+  margin-top:var(--sb-3);padding:var(--sb-4);
+  background:var(--sb-bad-bg);border:1px solid var(--sb-bad);border-radius:var(--sb-r);
+}
+.sb-dangerbox__lede{margin:0 0 var(--sb-3);font-size:13px;color:var(--sb-ink-2);line-height:1.45;max-width:70ch}
+.sb-dangerbox__actions{display:flex;gap:var(--sb-2);flex-wrap:wrap;margin-top:var(--sb-3)}
+.sb-dangerbox__msg{margin:var(--sb-3) 0 0;font-size:13px;min-height:1.4em;font-weight:600}
+.sb-dangerbox__msg--bad{color:var(--sb-bad)}
+@media print{.sb-dangerbox{display:none}}

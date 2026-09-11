@@ -49,6 +49,9 @@ function ic_salvage_enqueue() {
 			'sending'   => __( 'Sending…', 'imanicars' ),
 			'sent'      => __( 'Sent', 'imanicars' ),
 			'sendFail'  => __( 'Not sent', 'imanicars' ),
+			'checking'  => __( 'Checking…', 'imanicars' ),
+			'deleting'  => __( 'Deleting…', 'imanicars' ),
+			'reloading' => __( 'Reloading…', 'imanicars' ),
 		),
 	) );
 }

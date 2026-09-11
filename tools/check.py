@@ -217,8 +217,34 @@ gate("no V8 Prado guard present", HARD, "drivetrain_conflict" in rules)
 print("\nImport safety")
 imp = read("inc/salvage/import.php") or ""
 repo = read("inc/salvage/repo.php") or ""
+# The original rule was "never delete a sold lot". It still holds where it was
+# aimed: AN IMPORT MUST NEVER REMOVE ANYTHING, because a scan that silently drops
+# a lot it can no longer see destroys price history nobody chose to destroy.
+# Rop asked (11 Sep 2026) to be able to clear lots himself from the board, so a
+# single deliberate, capability-gated, two-step delete now exists. The gate was
+# split rather than dropped: the import path is still forbidden to delete, and
+# the one delete that exists has to keep its safeguards.
 gate("importer never deletes", HARD,
-     not re.search(r"(?i)\bDELETE\b|->delete\(", imp + repo))
+     not re.search(r"(?i)\bDELETE\b|->delete\(", imp))
+gate("the ONLY delete is the deliberate one", HARD,
+     repo.count("DELETE FROM") == 2          # observations, then lots
+     and "function delete_lots" in repo
+     # Match delete OPERATIONS, not the word in prose — the comments above the
+     # function necessarily say "delete" a great many times.
+     and not re.search(r"(?i)DELETE\s+FROM|->delete\(", repo.split("function delete_lots")[0]))
+gate("delete is capability- and nonce-gated like every other write", HARD,
+     "wp_ajax_ic_salvage_delete" in ajax
+     and "require_access" in ajax.split("function delete_lots")[1][:400])
+gate("delete refuses to run on an unfiltered board", HARD,
+     "has_active_filters" in ajax)
+gate("delete is two-step — a preview before anything is destroyed", HARD,
+     "'preview' => true" in ajax and "$confirm" in ajax)
+gate("lots carrying prices are kept by DEFAULT", HARD,
+     "$include_observed = false" in repo
+     and "skipped_observed" in repo
+     and 'name="include_observed"' in (read("page-insurance.php") or ""))
+gate("the operator is told what the delete destroyed", HARD,
+     "observations_deleted" in repo and "observations_deleted" in ajax)
 gate("upsert is keyed on (source, stock)", HARD,
      "UNIQUE KEY source_stock" in (read("inc/salvage/schema.php") or ""))
 gate("import never writes a lot status (sold lots keep their status)", HARD,

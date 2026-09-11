@@ -24,6 +24,7 @@ class IC_Salvage_Ajax {
 		add_action( 'wp_ajax_ic_salvage_save_observation', array( __CLASS__, 'save_observation' ) );
 		add_action( 'wp_ajax_ic_salvage_quote',            array( __CLASS__, 'quote' ) );
 		add_action( 'wp_ajax_ic_salvage_email',            array( __CLASS__, 'email_board' ) );
+		add_action( 'wp_ajax_ic_salvage_delete',           array( __CLASS__, 'delete_lots' ) );
 		add_action( 'init',                                array( __CLASS__, 'maybe_export' ) );
 	}
 
@@ -316,6 +317,88 @@ class IC_Salvage_Ajax {
 				$to
 			),
 		) );
+	}
+
+	/**
+	 * Delete the lots in the current filtered view.
+	 *
+	 * Two-step by design. The first call reports what WOULD go, including how many
+	 * lots carry price observations; only a call with confirm=1 removes anything.
+	 * A count on screen is cheap, and an accidental purge of a sale's price history
+	 * is not recoverable from this board.
+	 */
+	public static function delete_lots() {
+		self::require_access();
+
+		$filters = IC_Salvage_View::filters_from_request_array(
+			isset( $_POST['filters'] ) ? wp_unslash( $_POST['filters'] ) : ''
+		);
+
+		// Refuse to operate on an unfiltered board. "Delete everything" is never
+		// what someone means from a filter bar, and it is the one mistake here
+		// that cannot be undone.
+		if ( ! IC_Salvage_View::has_active_filters( $filters ) ) {
+			wp_send_json_error( array(
+				'message' => __( 'No filter is active, so this would delete the entire board. Narrow the view first — by sale date, house, or book — then delete.', 'imanicars' ),
+			), 400 );
+		}
+
+		$rows = IC_Salvage_Repo::query( $filters );
+		if ( ! $rows ) {
+			wp_send_json_error( array( 'message' => __( 'This view matches no lots. Nothing to delete.', 'imanicars' ) ), 400 );
+		}
+
+		$ids      = array_map( function ( $r ) { return (int) $r->id; }, $rows );
+		$observed = 0;
+		foreach ( $rows as $r ) {
+			if ( (int) $r->observation_count > 0 ) { $observed++; }
+		}
+
+		$confirm  = ! empty( $_POST['confirm'] );
+		$with_obs = ! empty( $_POST['include_observed'] );
+
+		if ( ! $confirm ) {
+			wp_send_json_success( array(
+				'preview' => true,
+				'total'   => count( $ids ),
+				'observed'=> $observed,
+				'message' => $observed
+					? sprintf(
+						/* translators: 1: total lots, 2: lots carrying prices */
+						__( '%1$d lots in this view. %2$d of them carry recorded prices and will be KEPT unless you tick the override — those prices are what a future bid gets compared against.', 'imanicars' ),
+						count( $ids ), $observed
+					)
+					: sprintf(
+						/* translators: %d: lots */
+						__( '%d lots in this view. None carry recorded prices, so nothing is lost by removing them.', 'imanicars' ),
+						count( $ids )
+					),
+			) );
+		}
+
+		$res = IC_Salvage_Repo::delete_lots( $ids, $with_obs );
+
+		$msg = sprintf(
+			/* translators: %d: lots deleted */
+			_n( 'Deleted %d lot.', 'Deleted %d lots.', $res['deleted'], 'imanicars' ),
+			$res['deleted']
+		);
+		if ( $res['skipped_observed'] > 0 ) {
+			$msg .= ' ' . sprintf(
+				/* translators: %d: lots kept */
+				_n( '%d lot was kept because it carries recorded prices.', '%d lots were kept because they carry recorded prices.', $res['skipped_observed'], 'imanicars' ),
+				$res['skipped_observed']
+			);
+		}
+		if ( $res['observations_deleted'] > 0 ) {
+			$msg .= ' ' . sprintf(
+				/* translators: %d: observations */
+				_n( '%d price observation was destroyed with it.', '%d price observations were destroyed with them.', $res['observations_deleted'], 'imanicars' ),
+				$res['observations_deleted']
+			);
+		}
+
+		wp_send_json_success( array( 'preview' => false, 'message' => $msg, 'deleted' => $res['deleted'] ) );
 	}
 
 	/** A one-line, human description of what the attached rows were filtered to. */

@@ -369,6 +369,74 @@ class IC_Salvage_Repo {
 		);
 	}
 
+	/* ---------------------------------------------------------------
+	 * Deliberate removal — the ONLY delete in this system
+	 * ------------------------------------------------------------- */
+
+	/**
+	 * Delete lots the operator has explicitly selected.
+	 *
+	 * The original rule was "never delete a sold lot", and it still holds where it
+	 * was aimed: AN IMPORT MUST NEVER REMOVE ANYTHING. A scan that silently drops
+	 * a lot it can no longer see would destroy the price history without anyone
+	 * choosing to. That is still forbidden and still gated.
+	 *
+	 * This is a different act. Rop owns the data and asked to be able to clear
+	 * what he no longer wants, without going through an agent. So the protection
+	 * moved from a prohibition to a DEFAULT: a lot carrying price observations is
+	 * skipped unless the caller says otherwise, because those observations are the
+	 * comparison a future bid gets judged against. Hiding beats deleting, and the
+	 * sale-date filter is the better tool — but the choice is his to make.
+	 *
+	 * @param int[] $ids                Lot ids to remove.
+	 * @param bool  $include_observed   When false (default) lots WITH observations
+	 *                                  are refused and reported back, not deleted.
+	 * @return array{deleted:int, skipped_observed:int, observations_deleted:int, skipped_ids:int[]}
+	 */
+	public static function delete_lots( array $ids, $include_observed = false ) {
+		global $wpdb;
+		$lots = IC_Salvage_Schema::lots_table();
+		$obs  = IC_Salvage_Schema::obs_table();
+
+		$ids = array_values( array_unique( array_filter( array_map( 'intval', $ids ) ) ) );
+		if ( ! $ids ) {
+			return array( 'deleted' => 0, 'skipped_observed' => 0, 'observations_deleted' => 0, 'skipped_ids' => array() );
+		}
+
+		$in = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+
+		// Which of these carry price history?
+		$observed = $wpdb->get_col( $wpdb->prepare(
+			"SELECT DISTINCT lot_id FROM {$obs} WHERE lot_id IN ({$in})", $ids
+		) );
+		$observed = array_map( 'intval', (array) $observed );
+
+		$targets = $include_observed ? $ids : array_values( array_diff( $ids, $observed ) );
+		$skipped = $include_observed ? array() : array_values( array_intersect( $ids, $observed ) );
+
+		if ( ! $targets ) {
+			return array( 'deleted' => 0, 'skipped_observed' => count( $skipped ),
+				'observations_deleted' => 0, 'skipped_ids' => $skipped );
+		}
+
+		$tin  = implode( ',', array_fill( 0, count( $targets ), '%d' ) );
+		$nobs = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$obs} WHERE lot_id IN ({$tin})", $targets
+		) );
+
+		// Observations first — an orphaned observation row points at nothing and
+		// would be counted by every total on the board.
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$obs} WHERE lot_id IN ({$tin})", $targets ) );
+		$n = $wpdb->query( $wpdb->prepare( "DELETE FROM {$lots} WHERE id IN ({$tin})", $targets ) );
+
+		return array(
+			'deleted'              => (int) $n,
+			'skipped_observed'     => count( $skipped ),
+			'observations_deleted' => $nobs,
+			'skipped_ids'          => $skipped,
+		);
+	}
+
 	public static function today() {
 		return current_time( 'Y-m-d' );
 	}

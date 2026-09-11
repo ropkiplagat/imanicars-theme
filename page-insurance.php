@@ -403,6 +403,37 @@ $export_url = wp_nonce_url( add_query_arg( array_merge( $_GET, array( 'ic_salvag
 		<span class="sb-actions__status" data-sb-status role="status" aria-live="polite"></span>
 	</div>
 
+	<?php if ( $rows && IC_Salvage_View::has_active_filters( $filters ) ) : ?>
+	<details class="sb-dangerbox">
+		<summary class="sb-btn sb-btn--danger"><?php esc_html_e( 'Delete the lots in this view', 'imanicars' ); ?></summary>
+		<form class="sb-dangerbox__form" data-sb-delete method="post">
+			<p class="sb-dangerbox__lede">
+				<?php
+				printf(
+					esc_html( _n( '%d lot is in the current view.', '%d lots are in the current view.', count( $rows ), 'imanicars' ) ),
+					count( $rows )
+				);
+				?>
+				<?php esc_html_e( 'Deleting is permanent and this board cannot undo it.', 'imanicars' ); ?>
+			</p>
+			<p class="sb-dangerbox__lede">
+				<?php esc_html_e( 'Hiding is usually what you want instead: set a sale date and past lots drop out of view while their prices stay. A lot that sold last week is the comparison this week\'s bid gets judged against.', 'imanicars' ); ?>
+			</p>
+			<label class="sb-check">
+				<input type="checkbox" name="include_observed" value="1" data-sb-delete-obs>
+				<span><?php esc_html_e( 'Also delete lots that have recorded prices', 'imanicars' ); ?>
+					<small><?php esc_html_e( 'Off by default. Leave it off and priced lots are kept even if they match the filter.', 'imanicars' ); ?></small>
+				</span>
+			</label>
+			<div class="sb-dangerbox__actions">
+				<button type="submit" class="sb-btn" data-sb-delete-check><?php esc_html_e( 'Check what would go', 'imanicars' ); ?></button>
+				<button type="button" class="sb-btn sb-btn--danger" data-sb-delete-go hidden><?php esc_html_e( 'Yes, delete them', 'imanicars' ); ?></button>
+			</div>
+			<p class="sb-dangerbox__msg" data-sb-delete-msg role="status" aria-live="polite"></p>
+		</form>
+	</details>
+	<?php endif; ?>
+
 	<details class="sb-emailbox">
 		<summary class="sb-btn"><?php esc_html_e( 'Email these results', 'imanicars' ); ?></summary>
 		<form class="sb-emailbox__form" data-sb-email method="post">
